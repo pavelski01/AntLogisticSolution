@@ -9,7 +9,8 @@ var antLogisticsDb = postgres.AddDatabase("antlogistics");
 
 // Add Core API service with database reference
 var coreApi = builder.AddProject<Projects.AntLogistics_Core>("core")
-    .WithReference(antLogisticsDb);
+    .WithReference(antLogisticsDb)
+    .WaitFor(antLogisticsDb);
 
 // Example: Add your services here and reference ServiceDefaults
 // var apiService = builder.AddProject<Projects.AntLogistics_Api>("apiservice")

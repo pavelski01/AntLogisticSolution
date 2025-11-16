@@ -133,6 +133,49 @@ public class AntLogisticsDbContext : DbContext
                 .HasForeignKey(e => e.WarehouseId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        // Seed initial warehouse data
+        modelBuilder.Entity<Warehouse>().HasData(
+            new Warehouse
+            {
+                Id = 1,
+                Name = "Central Distribution Center",
+                Code = "CDC-001",
+                Address = "123 Industrial Boulevard",
+                City = "Chicago",
+                Country = "United States",
+                PostalCode = "60601",
+                Capacity = 50000.00m,
+                IsActive = true,
+                CreatedAt = new DateTime(2024, 1, 15, 10, 0, 0, DateTimeKind.Utc)
+            },
+            new Warehouse
+            {
+                Id = 2,
+                Name = "Eastern Regional Hub",
+                Code = "ERH-002",
+                Address = "456 Commerce Street",
+                City = "New York",
+                Country = "United States",
+                PostalCode = "10001",
+                Capacity = 35000.00m,
+                IsActive = true,
+                CreatedAt = new DateTime(2024, 2, 20, 14, 30, 0, DateTimeKind.Utc)
+            },
+            new Warehouse
+            {
+                Id = 3,
+                Name = "Western Logistics Center",
+                Code = "WLC-003",
+                Address = "789 Pacific Avenue",
+                City = "Los Angeles",
+                Country = "United States",
+                PostalCode = "90001",
+                Capacity = 42000.00m,
+                IsActive = true,
+                CreatedAt = new DateTime(2024, 3, 10, 9, 15, 0, DateTimeKind.Utc)
+            }
+        );
     }
 
     /// <summary>
