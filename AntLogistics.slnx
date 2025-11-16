@@ -1,1 +1,4 @@
-<Solution />
+<Solution>
+  <Project Path="src/AntLogistics.AppHost/AntLogistics.AppHost.csproj" />
+  <Project Path="src/AntLogistics.ServiceDefaults/AntLogistics.ServiceDefaults.csproj" />
+</Solution>
