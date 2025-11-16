@@ -14,10 +14,11 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting" />
     <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AntLogistics.ServiceDefaults\AntLogistics.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\AntLogistics.ServiceDefaults\AntLogistics.ServiceDefaults.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\AntLogistics.Core\AntLogistics.Core.csproj" />
   </ItemGroup>
 
