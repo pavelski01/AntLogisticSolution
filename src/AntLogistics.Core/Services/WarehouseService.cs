@@ -1,6 +1,6 @@
 using AntLogistics.Core.Data;
 using AntLogistics.Core.Data.Models;
-using AntLogistics.Core.DTOs;
+using AntLogistics.Core.Dto;
 using Microsoft.EntityFrameworkCore;
 
 namespace AntLogistics.Core.Services;

@@ -1,5 +1,5 @@
 using AntLogistics.Core.Data;
-using AntLogistics.Core.DTOs;
+using AntLogistics.Core.Dto;
 using AntLogistics.Core.Services;
 using Microsoft.EntityFrameworkCore;
 

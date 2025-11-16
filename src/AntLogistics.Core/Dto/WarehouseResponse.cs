@@ -1,17 +1,22 @@
-namespace AntLogistics.Core.DTOs;
+namespace AntLogistics.Core.Dto;
 
 /// <summary>
-/// Request DTO for creating a new warehouse.
+/// Response DTO for warehouse information.
 /// </summary>
-public record CreateWarehouseRequest
+public record WarehouseResponse
 {
+    /// <summary>
+    /// Gets the unique identifier for the warehouse.
+    /// </summary>
+    public required int Id { get; init; }
+
     /// <summary>
     /// Gets the warehouse name.
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// Gets the warehouse code (unique identifier for business use).
+    /// Gets the warehouse code.
     /// </summary>
     public required string Code { get; init; }
 
@@ -41,7 +46,22 @@ public record CreateWarehouseRequest
     public decimal Capacity { get; init; }
 
     /// <summary>
-    /// Gets whether the warehouse is active.
+    /// Gets whether the warehouse is currently active.
     /// </summary>
-    public bool IsActive { get; init; } = true;
+    public bool IsActive { get; init; }
+
+    /// <summary>
+    /// Gets the date and time when the warehouse was created.
+    /// </summary>
+    public DateTime CreatedAt { get; init; }
+
+    /// <summary>
+    /// Gets the date and time when the warehouse was last updated.
+    /// </summary>
+    public DateTime? UpdatedAt { get; init; }
+
+    /// <summary>
+    /// Gets the count of commodities stored in this warehouse.
+    /// </summary>
+    public int CommodityCount { get; init; }
 }

@@ -23,6 +23,7 @@ This is the Ant Logistics solution built with .NET 9 and Aspire 13.0 for cloud-n
 - <convention>PascalCase</convention>: Classes, methods, properties, interfaces (prefix with `I`)
 - <convention>camelCase</convention>: Local variables, parameters, private fields
 - <convention>Descriptive names</convention>: Convey intent clearly (e.g., `GetOrdersByCustomerId` not `GetOrders`)
+- <convention>Abbreviations</convention>: Treat 2-letter abbreviations as words (e.g., `Io`, `Id`), capitalize 3+ letters only first letter (e.g., `Dto`, `Api`, `Html`, `Xml`)
 
 ### Code Organization
 ```

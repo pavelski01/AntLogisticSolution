@@ -1,4 +1,4 @@
-using AntLogistics.Core.DTOs;
+using AntLogistics.Core.Dto;
 
 namespace AntLogistics.Core.Services;
 
