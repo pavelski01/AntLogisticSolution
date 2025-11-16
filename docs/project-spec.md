@@ -1,7 +1,82 @@
-# AntLogisticSolution - Project Specification
+### 1. 🎯 Project Goal and Introduction
+
+The goal of this project is the design, development, and implementation of an integrated IT system of the **WMS (Warehouse Management System)** class. The system's main objective is the comprehensive management and optimization of **warehouse operations** within the organization, starting from goods receipt, through inventory tracking and storage, to the order fulfillment and dispatch (outbound) processes.
+
+### 2. 📋 General Solution Description and Project Scope
+
+The subject of the project is the delivery of dedicated software to support **warehouse management**. The system aims to automate key warehouse operations, provide full, real-time control over inventory levels, and streamline the flow of materials and information.
+
+The solution will cover the following key areas of **warehouse management**:
+* **Inbound Processes** (Advanced Shipping Notices, quantity and quality control).
+* **Storage Management** (location assignment, space optimization).
+* **Inventory Management** (stocktaking, internal warehouse transfers).
+* **Outbound Processes** (order picking, packing, preparation for dispatch).
+* **Reporting and Analytics**.
+
+### 3. 📄 Functional Requirements – Key System Modules
+
+The system will be built based on a modular architecture to ensure flexibility and scalability. The basic functional scope for each module is defined below.
+
+#### 📦 Module 1: Goods Receipt Management
+
+This module is responsible for handling all processes related to receiving goods into the warehouse.
+
+* **Objective:** To ensure the correct registration and control of all goods entering the warehouse.
+* **Key functionalities:**
+    * Registration of Advanced Shipping Notices (ASN) from suppliers.
+    * Verification of the physical delivery against the ASN document or Purchase Order (PO).
+    * Handling of non-advised (unexpected) receipts.
+    * Performing quantity checks and supporting quality control (QC) processes (e.g., directing goods to a QC zone).
+    * Generating and printing logistic labels (e.g., pallet labels with a unique SSCC number or internal LPN - License Plate Number).
+    * Management of the inbound buffer zone (e.g., receiving docks).
+    * Recording batch/lot attributes (e.g., expiration date, batch/LOT number, serial number).
+
+#### 🗺️ Module 2: Location Management and Put-away
+
+This module is responsible for mapping the warehouse and intelligently managing the process of placing goods into storage locations.
+
+* **Objective:** Optimization of warehouse space utilization and reduction of put-away operation time.
+* **Key functionalities:**
+    * Graphical or logical mapping of the warehouse structure (zones, aisles, racks, bin locations).
+    * Defining location types (e.g., storage, picking, buffer, quarantine).
+    * Automatic suggestion of a target storage location based on predefined rules (e.g., ABC strategy, product velocity, FIFO/LIFO/FEFO, dimensions, dedicated zones).
+    * Registering operator confirmation of put-away (e.g., by scanning the location barcode).
+    * Handling internal transfer operations (manual and system-directed).
+    * Managing location optimization and defragmentation.
+
+#### 📊 Module 3: Inventory Management and Stocktaking
+
+This module serves as the central hub for real-time inventory records.
+
+* **Objective:** To ensure 100% agreement between the system inventory and physical inventory, and to provide full traceability.
+* **Key functionalities:**
+    * Real-time presentation of inventory levels broken down by location, batch, expiration date, etc.
+    * Management of inventory statuses (e.g., available, blocked, in quality control, reserved).
+    * Full Lot (batch) and serial number tracking at every process stage (traceability).
+    * Support for stocktaking (inventory count) processes:
+        * Full (annual/periodic) inventory count.
+        * Continuous (cycle) counting (by selected locations or products).
+    * Generating count sheets and managing the reconciliation of inventory discrepancies.
+
+#### 🚚 Module 4: Picking and Dispatch Management
+
+This module manages the process of preparing goods for shipment according to customer orders.
+
+* **Objective:** Minimization of picking time and errors, and ensuring timely preparation of shipments.
+* **Key functionalities:**
+    * Integration with the host system (e.g., ERP, e-commerce) to retrieve Sales Orders (SO).
+    * Creating and assigning picking tasks to operators (picking lists).
+    * Support for various picking strategies (e.g., single-order picking, batch picking, wave picking, multi-stage picking).
+    * Optimization of the picking path (pathfinding) to shorten the operator's route.
+    * Verification of picks (e.g., by scanning the product EAN code and/or location).
+    * Support for packing processes (order consolidation, selection of packaging).
+    * Generation of dispatch documents (e.g., Delivery Note) and shipping labels (integration with carriers).
+    * Management of the outbound buffer zone (e.g., shipping docks).
+
+# AntLogisticSolution - Technical Specification
 
 ## Overview
-AntLogisticSolution is a modern cloud-native logistics management system built with .NET 9 and .NET Aspire 13.0, designed to handle warehouse operations, order management, and supply chain logistics.
+AntLogisticSolution is a modern logistics management system built with .NET 9 and .NET Aspire 13.0, designed to handle warehouse operations, order management, and supply chain logistics.
 
 ## Technology Stack
 
