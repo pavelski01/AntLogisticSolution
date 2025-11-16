@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AntLogistics.ServiceDefaults\AntLogistics.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\AntLogistics.Core\AntLogistics.Core.csproj" />
   </ItemGroup>
 
 </Project>
