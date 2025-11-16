@@ -59,4 +59,9 @@ public class Warehouse
     /// Gets or sets the date and time when the warehouse was last updated.
     /// </summary>
     public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Gets or sets the collection of commodities stored in this warehouse.
+    /// </summary>
+    public ICollection<Commodity> Commodities { get; set; } = new List<Commodity>();
 }
