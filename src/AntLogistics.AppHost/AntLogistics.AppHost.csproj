@@ -13,4 +13,8 @@
     <PackageReference Include="Aspire.Hosting.AppHost" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AntLogistics.ServiceDefaults\AntLogistics.ServiceDefaults.csproj" />
+  </ItemGroup>
+
 </Project>
