@@ -265,7 +265,7 @@ Select code and ask:
 
 ### Synchronize Dependencies Command
 Ask in the chat:
-- "Synchronize dependencies across the solution"
+- "Synchroniize dependences across the solution"
 - "Check if packages are in Directory.Packages.props"
 - "Validate Aspire orchestration dependencies"
 - "Find missing packages in central package management"
