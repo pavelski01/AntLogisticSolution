@@ -72,8 +72,7 @@ app.MapGet("/api/v1/ping", () =>
 {
     return Results.Ok(new { message = "Pong! AntLogistics.Core API is running." });
 })
-.WithName("Ping")
-.WithOpenApi();
+.WithName("Ping");
 
 // Warehouse endpoints
 app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWarehouseService service, CancellationToken cancellationToken) =>
@@ -96,7 +95,6 @@ app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWareho
     }
 })
 .WithName("CreateWarehouse")
-.WithOpenApi()
 .Produces<WarehouseResponse>(StatusCodes.Status201Created)
 .ProducesProblem(StatusCodes.Status400BadRequest)
 .ProducesProblem(StatusCodes.Status500InternalServerError);
@@ -107,16 +105,14 @@ app.MapGet("/api/v1/warehouses/{id:int}", async (int id, IWarehouseService servi
     return Results.Ok(warehouse);
 })
 .WithName("GetWarehouseById")
-.WithOpenApi()
 .Produces<WarehouseResponse?>(StatusCodes.Status200OK);
 
-app.MapGet("/api/v1/warehouses", async (IWarehouseService service, bool includeInactive, CancellationToken cancellationToken) =>
+app.MapGet("/api/v1/warehouses", async (bool includeInactive, IWarehouseService service, CancellationToken cancellationToken) =>
 {
     var warehouses = await service.GetAllWarehousesAsync(includeInactive, cancellationToken);
     return Results.Ok(warehouses);
 })
 .WithName("GetAllWarehouses")
-.WithOpenApi()
 .Produces<IEnumerable<WarehouseResponse>>(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/warehouses/by-code/{code}", async (string code, IWarehouseService service, CancellationToken cancellationToken) =>
@@ -125,7 +121,6 @@ app.MapGet("/api/v1/warehouses/by-code/{code}", async (string code, IWarehouseSe
     return Results.Ok(warehouse);
 })
 .WithName("GetWarehouseByCode")
-.WithOpenApi()
 .Produces<WarehouseResponse?>(StatusCodes.Status200OK);
 
 app.Run();
