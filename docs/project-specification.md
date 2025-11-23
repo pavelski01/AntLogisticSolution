@@ -81,7 +81,7 @@ AntLogisticSolution is a modern logistics management system built with .NET 9 an
 ## Technology Stack
 
 ### Core Technologies
-- **Runtime**: .NET 9
+- **Runtime**: .NET 10
 - **Language**: C# 12
 - **Orchestration**: .NET Aspire 13.0
 - **Database**: PostgreSQL with Entity Framework Core 9.0
