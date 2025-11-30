@@ -1,0 +1,58 @@
+---
+import "@/styles/globals.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = "Ant Logistics", description = "Modern logistics management powered by .NET Aspire and Astro" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen flex flex-col bg-gray-900 text-gray-100">
+    <nav class="bg-gradient-to-r from-purple-600 to-purple-800 shadow-lg">
+      <div class="container mx-auto px-6 py-4">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center">
+            <h1 class="text-2xl font-bold text-white">🐜 Ant Logistics</h1>
+          </div>
+          <ul class="flex gap-8">
+            <li>
+              <a
+                href="/"
+                class="text-white font-medium hover:opacity-80 transition-opacity"
+              >
+                Home
+              </a>
+            </li>
+            <li>
+              <a
+                href="/warehouses"
+                class="text-white font-medium hover:opacity-80 transition-opacity"
+              >
+                Warehouses
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="flex-1 container mx-auto px-6 py-8">
+      <slot />
+    </main>
+
+    <footer class="bg-gray-950 py-4 text-center text-gray-400">
+      <p>&copy; 2025 Ant Logistics. Built with .NET Aspire + Astro</p>
+    </footer>
+  </body>
+</html>

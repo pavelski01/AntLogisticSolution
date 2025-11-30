@@ -1,0 +1,35 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Ant Logistics - Home">
+  <div class="text-center max-w-6xl mx-auto">
+    <h1 class="text-5xl font-bold mb-4">Welcome to Ant Logistics</h1>
+    <p class="text-xl text-gray-300 mb-12">
+      Modern logistics management powered by .NET Aspire and Astro
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+      <div
+        class="bg-gradient-to-br from-purple-600 to-purple-800 p-8 rounded-xl shadow-lg hover:-translate-y-2 transition-transform duration-300"
+      >
+        <h3 class="text-2xl font-bold text-white mb-3">📦 Warehouse Management</h3>
+        <p class="text-white/90">Track and manage your warehouses efficiently</p>
+      </div>
+
+      <div
+        class="bg-gradient-to-br from-purple-600 to-purple-800 p-8 rounded-xl shadow-lg hover:-translate-y-2 transition-transform duration-300"
+      >
+        <h3 class="text-2xl font-bold text-white mb-3">🚚 Commodity Tracking</h3>
+        <p class="text-white/90">Monitor commodities across all locations</p>
+      </div>
+
+      <div
+        class="bg-gradient-to-br from-purple-600 to-purple-800 p-8 rounded-xl shadow-lg hover:-translate-y-2 transition-transform duration-300"
+      >
+        <h3 class="text-2xl font-bold text-white mb-3">📊 Analytics</h3>
+        <p class="text-white/90">Get insights with real-time analytics</p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,11 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import WarehouseList from "@/components/WarehouseList";
+---
+
+<BaseLayout title="Ant Logistics - Warehouses">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-4xl font-bold mb-8">Warehouses</h1>
+    <WarehouseList client:load />
+  </div>
+</BaseLayout>

@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  --color-background: #0f172a;
+  --color-foreground: #f1f5f9;
+}
+
+@layer base {
+  * {
+    @apply border-gray-700;
+  }
+  
+  body {
+    @apply antialiased;
+  }
+}
