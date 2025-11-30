@@ -190,10 +190,9 @@ public async Task<Order?> GetOrderAsync(int orderId)
 ```
 
 ### Code Comments
-- Write <practice>self-documenting code</practice> (clear naming)
-- Add comments to explain <focus>why</focus>, not <focus>what</focus>
 - Keep comments <practice>up to date</practice> with code changes
-- Remove commented-out code (use version control)
+- Ensure comments are <focus>non-redundant</focus>
+- For code that is excessively complex, the recommendation is to <practice>suggest or implement refactoring rather than relying on detailed comments</practice>
 
 ## Git Practices
 
