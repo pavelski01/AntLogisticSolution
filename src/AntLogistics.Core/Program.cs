@@ -11,6 +11,17 @@ builder.AddServiceDefaults();
 // Add services to the container
 builder.Services.AddOpenApi();
 
+// Add CORS for development
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Configure PostgreSQL database context
 builder.Services.AddDbContext<AntLogisticsDbContext>(options =>
 {
@@ -60,6 +71,7 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseCors(); // Enable CORS in development
 }
 
 app.UseHttpsRedirection();
