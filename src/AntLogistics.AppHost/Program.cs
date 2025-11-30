@@ -12,10 +12,11 @@ var coreApi = builder.AddProject<Projects.AntLogistics_Core>("core")
     .WithReference(antLogisticsDb)
     .WaitFor(antLogisticsDb);
 
-// Add UI SPA application
+// Add UI SPA application with reference to Core API
 var ui = builder.AddProject<Projects.AntLogistics_UI>("ui")
     .WithExternalHttpEndpoints()
-    .WithReference(coreApi);
+    .WithReference(coreApi)
+    .WaitFor(coreApi);
 
 // Example: Add your services here and reference ServiceDefaults
 // var apiService = builder.AddProject<Projects.AntLogistics_Api>("apiservice")

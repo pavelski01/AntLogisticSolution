@@ -11,7 +11,7 @@ export default defineConfig({
   output: "server",
   integrations: [react(), sitemap()],
   server: {
-    port: 5173,
+    port: parseInt(process.env.PORT || "4321"),
     host: true,
   },
   vite: {
@@ -19,7 +19,7 @@ export default defineConfig({
     server: {
       proxy: {
         "/api": {
-          target: "http://localhost:5002",
+          target: process.env.services__core__http__0 || process.env.services__core__https__0 || "http://localhost:5000",
           changeOrigin: true,
           secure: false,
         },
