@@ -11,7 +11,7 @@ var coreApi = builder
     .WithReference(database)
     .WaitFor(database);
 
-builder
+var ui = builder
     .AddProject<Projects.AntLogistics_UI>("ui")
     .WithExternalHttpEndpoints()
     .WithReference(coreApi)
@@ -22,6 +22,7 @@ builder
     .WithReference(coreApi)
     .WaitFor(coreApi)
     .WithHttpEndpoint(targetPort: 4321, isProxied: false)
-    .WithExternalHttpEndpoints();
+    .WithExternalHttpEndpoints()
+    .WithParentRelationship(ui);
 
 builder.Build().Run();

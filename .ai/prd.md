@@ -1,4 +1,5 @@
-# Product Requirements Document (PRD) - AntLogistics WMS MVP
+# Product Requirements Document (PRD) - AntLogisticSolution
+
 ## 1. Product Overview
 AntLogistics WMS MVP is a web application that lets warehouse teams record foundational data about warehouses, items, and goods receipts. The solution is built on .NET 9 with .NET Aspire (AppHost, Core API, React/Vite UI) and uses PostgreSQL plus Entity Framework Core. The MVP delivers a simple browser interface where a single authenticated operator can manage master data and capture and save inventory readings. This minimal release focuses on intake processing and displaying current stock levels, enabling quick rollout and laying the groundwork for future modules (orders, reporting, integrations).
 

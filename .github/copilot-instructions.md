@@ -36,42 +36,6 @@ AntLogisticSolution/
 │   └── AntLogistics.Infrastructure/   # Data access
 ```
 
-## .NET Aspire Best Practices
-
-### ServiceDefaults Integration
-Always add ServiceDefaults to service projects:
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-builder.AddServiceDefaults();
-
-var app = builder.Build();
-app.MapDefaultEndpoints();
-```
-
-### AppHost Configuration
-Register all services in AppHost:
-```csharp
-var builder = DistributedApplication.CreateBuilder(args);
-
-var api = builder.AddProject<Projects.AntLogistics_Api>("api");
-var web = builder.AddProject<Projects.AntLogistics_Web>("web")
-    .WithReference(api);
-
-builder.Build().Run();
-```
-
-### Observability
-- Use OpenTelemetry for distributed tracing
-- Add structured logging with `ILogger<T>`
-- Implement health checks for all services
-- Use metrics for performance monitoring
-
-### Resilience
-- Apply retry policies for transient failures
-- Use circuit breakers for external dependencies
-- Implement timeouts for all HTTP calls
-- Handle failures gracefully
-
 ## Code Quality
 
 ### SOLID Principles
