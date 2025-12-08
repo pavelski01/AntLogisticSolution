@@ -39,40 +39,40 @@ public class AntLogisticsDbContext : DbContext
         modelBuilder.Entity<Warehouse>(entity =>
         {
             entity.HasKey(e => e.Id);
-            
+
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(200);
-            
+
             entity.Property(e => e.Code)
                 .IsRequired()
                 .HasMaxLength(50);
-            
+
             entity.HasIndex(e => e.Code)
                 .IsUnique();
-            
+
             entity.Property(e => e.Address)
                 .IsRequired()
                 .HasMaxLength(500);
-            
+
             entity.Property(e => e.City)
                 .IsRequired()
                 .HasMaxLength(100);
-            
+
             entity.Property(e => e.Country)
                 .IsRequired()
                 .HasMaxLength(100);
-            
+
             entity.Property(e => e.PostalCode)
                 .HasMaxLength(20);
-            
+
             entity.Property(e => e.Capacity)
                 .HasPrecision(18, 2);
-            
+
             entity.Property(e => e.IsActive)
                 .IsRequired()
                 .HasDefaultValue(true);
-            
+
             entity.Property(e => e.CreatedAt)
                 .IsRequired();
         });
@@ -81,52 +81,52 @@ public class AntLogisticsDbContext : DbContext
         modelBuilder.Entity<Commodity>(entity =>
         {
             entity.HasKey(e => e.Id);
-            
+
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(200);
-            
+
             entity.Property(e => e.Sku)
                 .IsRequired()
                 .HasMaxLength(100);
-            
+
             entity.HasIndex(e => e.Sku)
                 .IsUnique();
-            
+
             entity.Property(e => e.Description)
                 .HasMaxLength(1000);
-            
+
             entity.Property(e => e.Category)
                 .HasMaxLength(100);
-            
+
             entity.Property(e => e.UnitOfMeasure)
                 .IsRequired()
                 .HasMaxLength(20);
-            
+
             entity.Property(e => e.WeightPerUnit)
                 .HasPrecision(18, 3);
-            
+
             entity.Property(e => e.VolumePerUnit)
                 .HasPrecision(18, 3);
-            
+
             entity.Property(e => e.UnitPrice)
                 .IsRequired()
                 .HasPrecision(18, 2);
-            
+
             entity.Property(e => e.Quantity)
                 .IsRequired()
                 .HasPrecision(18, 3);
-            
+
             entity.Property(e => e.MinimumStockLevel)
                 .HasPrecision(18, 3);
-            
+
             entity.Property(e => e.IsActive)
                 .IsRequired()
                 .HasDefaultValue(true);
-            
+
             entity.Property(e => e.CreatedAt)
                 .IsRequired();
-            
+
             // Configure relationship with Warehouse
             entity.HasOne(e => e.Warehouse)
                 .WithMany(w => w.Commodities)

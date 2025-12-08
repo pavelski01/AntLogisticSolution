@@ -30,9 +30,9 @@ builder.Services.AddDbContext<AntLogisticsDbContext>(options =>
     var connectionString = builder.Configuration.GetConnectionString("antlogistics")
         ?? builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string not found.");
-    
+
     options.UseNpgsql(connectionString);
-    
+
     // Enable detailed errors and sensitive data logging in development
     if (builder.Environment.IsDevelopment())
     {
@@ -54,7 +54,7 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<AntLogisticsDbContext>();
         var logger = services.GetRequiredService<ILogger<Program>>();
-        
+
         logger.LogInformation("Applying database migrations...");
         await context.Database.MigrateAsync();
         logger.LogInformation("Database migrations applied successfully");
@@ -80,7 +80,7 @@ app.UseHttpsRedirection();
 app.MapDefaultEndpoints();
 
 // Ping endpoint
-app.MapGet("/api/v1/ping", () => 
+app.MapGet("/api/v1/ping", () =>
 {
     return Results.Ok(new { message = "Pong! AntLogistics.Core API is running." });
 })
