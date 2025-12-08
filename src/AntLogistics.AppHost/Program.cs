@@ -18,6 +18,13 @@ var ui = builder.AddProject<Projects.AntLogistics_UI>("ui")
     .WithReference(coreApi)
     .WaitFor(coreApi);
 
+// Add Astro dev server for frontend development
+var astroDev = builder.AddNpmApp("astro-dev", "../AntLogistics.UI/ClientApp", "dev")
+    .WithReference(coreApi)
+    .WaitFor(coreApi)
+    .WithHttpEndpoint(targetPort: 4321, isProxied: false)
+    .WithExternalHttpEndpoints();
+
 // Example: Add your services here and reference ServiceDefaults
 // var apiService = builder.AddProject<Projects.AntLogistics_Api>("apiservice")
 //     .WithReference(builder.AddProject<Projects.AntLogistics_ServiceDefaults>("servicedefaults"));
