@@ -11,6 +11,9 @@ builder.Services.AddHttpClient("core", client =>
 
 var app = builder.Build();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapDefaultEndpoints();
 
 // Proxy API calls to Core service
@@ -68,25 +71,64 @@ app.Map("/api/{**path}", async (HttpContext context, IHttpClientFactory httpClie
     }
 });
 
-// Configure SPA - uses SpaProxy settings from .csproj in development
-app.UseStaticFiles();
-app.UseRouting();
+// Check if we should use the Astro dev server
+var useDevServer = app.Environment.IsDevelopment() 
+    && args.Contains("--use-astro-dev");
 
-if (!app.Environment.IsDevelopment())
+if (useDevServer)
 {
-    // In production, serve the built Astro app
-    app.UseSpaStaticFiles();
+    // Proxy to Astro dev server (only when explicitly requested)
+    app.Use(async (context, next) =>
+    {
+        if (!context.Request.Path.StartsWithSegments("/api") && 
+            !context.Request.Path.StartsWithSegments("/health") &&
+            !context.Request.Path.StartsWithSegments("/alive"))
+        {
+            var httpClient = new HttpClient();
+            var targetUri = $"http://localhost:4321{context.Request.Path}{context.Request.QueryString}";
+            
+            try
+            {
+                var response = await httpClient.GetAsync(targetUri);
+                context.Response.StatusCode = (int)response.StatusCode;
+                await response.Content.CopyToAsync(context.Response.Body);
+                return;
+            }
+            catch
+            {
+                // Fall through to next middleware if dev server is not available
+            }
+        }
+        
+        await next();
+    });
 }
 
-app.UseSpa(spa =>
+// Serve Astro built files
+var clientPath = Path.Combine(app.Environment.ContentRootPath, "ClientApp", "dist");
+if (Directory.Exists(clientPath))
 {
-    spa.Options.SourcePath = "ClientApp";
-
-    if (app.Environment.IsDevelopment())
+    app.UseStaticFiles(new StaticFileOptions
     {
-        // The SpaProxy automatically launches and proxies to the dev server
-        // based on SpaProxyServerUrl and SpaProxyLaunchCommand in .csproj
-        spa.UseProxyToSpaDevelopmentServer("http://localhost:4321");
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(clientPath),
+        RequestPath = ""
+    });
+}
+
+// Fallback for SPA routing
+app.MapFallback(async context =>
+{
+    var indexPath = Path.Combine(app.Environment.ContentRootPath, "ClientApp", "dist", "index.html");
+    
+    if (File.Exists(indexPath))
+    {
+        context.Response.ContentType = "text/html";
+        await context.Response.SendFileAsync(indexPath);
+    }
+    else
+    {
+        context.Response.StatusCode = 503;
+        await context.Response.WriteAsync("UI is not built. Run 'npm run build' in ClientApp directory.");
     }
 });
 

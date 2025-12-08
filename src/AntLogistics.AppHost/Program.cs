@@ -12,17 +12,11 @@ var coreApi = builder.AddProject<Projects.AntLogistics_Core>("core")
     .WithReference(antLogisticsDb)
     .WaitFor(antLogisticsDb);
 
-// Add Astro dev server as npm app (automatically starts and manages the dev server)
-var astroApp = builder.AddNpmApp("astro-dev", "../AntLogistics.UI/ClientApp", "dev")
-    .WithHttpEndpoint(port: 4321, env: "PORT")
-    .PublishAsDockerFile();
-
-// Add UI SPA application
+// Add UI SPA application with reference to Core API
 var ui = builder.AddProject<Projects.AntLogistics_UI>("ui")
     .WithExternalHttpEndpoints()
     .WithReference(coreApi)
-    .WithReference(astroApp)
-    .WaitFor(astroApp);
+    .WaitFor(coreApi);
 
 // Example: Add your services here and reference ServiceDefaults
 // var apiService = builder.AddProject<Projects.AntLogistics_Api>("apiservice")
