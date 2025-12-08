@@ -1,22 +1,191 @@
-# Database Planning Summary
+# AntLogistics PostgreSQL Schema
 
-## Decisions
-1. The MVP schema covers the `warehouses`, global `commodities`, append-only `readings`, and asynchronous `inventory_snapshots` tables.
-2. `warehouses` store the required `default_zone` column and `is_active` flag to provide a complete location description without a dedicated zones table.
-3. SKUs in `commodities` are shared globally, so a `unique(sku)` constraint is maintained without a direct FK to a warehouse.
-4. `readings` remain append-only and include `warehouse_id`, `sku`, `quantity`, timestamps, and a text `created_by` field instead of a link to an operators table.
-5. `inventory_snapshots` store current stock levels with PK `(warehouse_id, sku)` and the `last_calculated_at` column, updated by an asynchronous job.
-6. RLS will be enabled on the key tables, filtering `is_active=true`, while all write operations are executed by a trusted API role.
-7. No partitioning is introduced initially; possible archiving will only be considered after the dataset grows significantly.
+1. **List of tables with columns, data types, and constraints**
 
-## Recommendations
-1. Enforce `default_zone varchar(100) not null` and extend `AntLogisticsDbContext` with the new columns and entities before generating standalone SQL.
-2. Preserve the uniqueness of `warehouses.code` and `commodities.sku`, adding indexes filtered by `is_active` plus time-based indexes on `readings`.
-3. Use `batch_number varchar(100)` as an optional field in `readings`, while handling batch-required logic in the domain layer.
-4. Keep `quantity numeric(18,3) not null` and `last_calculated_at timestamptz not null` in `inventory_snapshots`; the sync job should overwrite records after every update.
-5. Add a trigger/constraint that blocks new `readings` for inactive warehouses or SKUs, leaving historical data read-only.
-6. Monitor table and index sizes; if needed, implement logical archiving (e.g., moving the oldest `readings` to a history table) to avoid partitioning pressure.
-7. Document the RLS process and database roles (API role vs. end users) to keep access rules consistent as the system evolves.
+	 #### `warehouses`
+	 | Column | Type | Constraints | Description |
+	 | --- | --- | --- | --- |
+	 | id | uuid | PK, default gen_random_uuid() | Stable identifier |
+	 | code | varchar(50) | NOT NULL, unique, check (code = lower(code)) | Human-friendly short code |
+	 | name | varchar(200) | NOT NULL | Display name |
+	 | address_line | text | NOT NULL | Street and number |
+	 | city | varchar(100) | NOT NULL | City |
+	 | country_code | char(2) | NOT NULL, check (country_code ~ '^[A-Z]{2}$') | ISO 3166-1 alpha-2 |
+	 | postal_code | varchar(20) | NULL | Postal/zip code |
+	 | default_zone | varchar(100) | NOT NULL | Default operational zone |
+	 | capacity | numeric(18,2) | NOT NULL, check (capacity > 0) | Warehouse capacity in configured units |
+	 | is_active | boolean | NOT NULL default true | Soft-active flag |
+	 | deactivated_at | timestamptz | NULL | Timestamp when disabled |
+	 | created_at | timestamptz | NOT NULL default now() | Audit |
+	 | updated_at | timestamptz | NOT NULL default now() | Audit |
 
-## Summary
-The agreed decisions produce a streamlined yet scalable data backbone for the AntLogistics MVP. Warehouses and items are described globally, while material movements are persisted in append-only `readings`, simplifying auditing. Current stock levels will be maintained in the asynchronously updated `inventory_snapshots` table. Security rests on RLS with `is_active` filtering, and the lack of partitioning is mitigated by monitoring plus optional archiving. This plan sets the stage for generating standalone SQL and updating `AntLogisticsDbContext`, ensuring a coherent direction for the next iteration of database work.
+	 #### `commodities`
+	 | Column | Type | Constraints | Description |
+	 | --- | --- | --- | --- |
+	 | id | uuid | PK, default gen_random_uuid() | Stable identifier |
+	 | sku | varchar(100) | NOT NULL, unique (lower(sku)), check (sku = lower(sku)) | Global SKU |
+	 | name | varchar(200) | NOT NULL | Item name |
+	 | unit_of_measure | varchar(20) | NOT NULL | Base UOM (e.g. kg) |
+	 | batch_required | boolean | NOT NULL default false | Requires batch tracking |
+	 | control_parameters | jsonb | NOT NULL default '{}'::jsonb | Additional constraints (temperature, etc.) |
+	 | is_active | boolean | NOT NULL default true | Soft-active flag |
+	 | deactivated_at | timestamptz | NULL | Timestamp when disabled |
+	 | created_at | timestamptz | NOT NULL default now() | Audit |
+	 | updated_at | timestamptz | NOT NULL default now() | Audit |
+
+	 #### `operators`
+	 | Column | Type | Constraints | Description |
+	 | --- | --- | --- | --- |
+	 | id | uuid | PK, default gen_random_uuid() | Operator identifier |
+	 | username | varchar(100) | NOT NULL, unique (lower(username)) | Login name |
+	 | password_hash | varchar(255) | NOT NULL | Bcrypt hash |
+	 | full_name | varchar(200) | NOT NULL | Display name |
+	 | role | varchar(30) | NOT NULL default 'operator', check (role in ('operator','admin')) | Single-role model with admin override |
+	 | idle_timeout_minutes | integer | NOT NULL default 30, check (idle_timeout_minutes between 5 and 180) | Session timeout policy |
+	 | is_active | boolean | NOT NULL default true | Soft-active flag |
+	 | last_login_at | timestamptz | NULL | Last successful login |
+	 | created_at | timestamptz | NOT NULL default now() | Audit |
+	 | updated_at | timestamptz | NOT NULL default now() | Audit |
+
+	 #### `operator_sessions`
+	 | Column | Type | Constraints | Description |
+	 | --- | --- | --- | --- |
+	 | id | uuid | PK, default gen_random_uuid() | Session row |
+	 | operator_id | uuid | NOT NULL, FK -> operators(id) ON DELETE CASCADE | Owner |
+	 | session_token | uuid | NOT NULL, unique | Server-issued token |
+	 | issued_at | timestamptz | NOT NULL default now() | Creation time |
+	 | last_seen_at | timestamptz | NOT NULL default now() | Sliding expiration checkpoint |
+	 | expires_at | timestamptz | NOT NULL, check (expires_at > issued_at) | Absolute expiry |
+	 | revoked_at | timestamptz | NULL | Manual revocation |
+	 | client_ip | inet | NULL | IP for audit |
+	 | user_agent | text | NULL | UA string |
+
+	 #### `readings`
+	 | Column | Type | Constraints | Description |
+	 | --- | --- | --- | --- |
+	 | id | bigint | PK, generated always as identity | Append-only identifier |
+	 | warehouse_id | uuid | NOT NULL, FK -> warehouses(id) | Warehouse |
+	 | commodity_id | uuid | NOT NULL, FK -> commodities(id) | Item |
+	 | sku | varchar(100) | NOT NULL | Denormalized SKU copy |
+	 | unit_of_measure | varchar(20) | NOT NULL | UOM at capture time |
+	 | quantity | numeric(18,3) | NOT NULL, check (quantity > 0) | Captured quantity |
+	 | batch_number | varchar(100) | NULL | Optional batch/lot |
+	 | warehouse_zone | varchar(100) | NOT NULL default 'DEFAULT' | Zone of the reading |
+	 | operator_id | uuid | NULL, FK -> operators(id) ON DELETE SET NULL | Capturing operator |
+	 | created_by | text | NOT NULL | Immutable operator label |
+	 | source | varchar(50) | NOT NULL default 'manual' | Manual/API/import |
+	 | occurred_at | timestamptz | NOT NULL default now() | Physical event time |
+	 | created_at | timestamptz | NOT NULL default now() | Persisted timestamp |
+	 | metadata | jsonb | NOT NULL default '{}'::jsonb | Free-form attributes |
+
+	 #### `inventory_snapshot_jobs`
+	 | Column | Type | Constraints | Description |
+	 | --- | --- | --- | --- |
+	 | id | uuid | PK, default gen_random_uuid() | Job run identifier |
+	 | started_at | timestamptz | NOT NULL default now() | Job start |
+	 | completed_at | timestamptz | NULL | Job completion |
+	 | status | varchar(20) | NOT NULL, check (status in ('running','succeeded','failed')) | Execution status |
+	 | rows_written | integer | NOT NULL default 0 | Snapshot rows processed |
+	 | error_message | text | NULL | Failure details |
+
+	 #### `inventory_snapshots`
+	 | Column | Type | Constraints | Description |
+	 | --- | --- | --- | --- |
+	 | warehouse_id | uuid | NOT NULL, FK -> warehouses(id) | Warehouse |
+	 | commodity_id | uuid | NOT NULL, FK -> commodities(id) | Item |
+	 | sku | varchar(100) | NOT NULL | Denormalized SKU |
+	 | quantity | numeric(18,3) | NOT NULL | Current stock level |
+	 | last_calculated_at | timestamptz | NOT NULL | Last async calc |
+	 | calculation_source | varchar(50) | NOT NULL default 'async_job' | Origin identifier |
+	 | job_run_id | uuid | NULL, FK -> inventory_snapshot_jobs(id) ON DELETE SET NULL | Back-reference |
+	 | PRIMARY KEY (warehouse_id, commodity_id) | | | Composite PK |
+
+2. **Relationships between tables**
+
+- `warehouses` 1:N `readings` and 1:N `inventory_snapshots`; deleting a warehouse is blocked while dependent data exists.
+- `commodities` 1:N `readings` and 1:N `inventory_snapshots`; commodities remain referenced even when inactive.
+- `operators` 1:N `operator_sessions` (cascade delete removes sessions) and 1:N `readings` (nullable FK to preserve history for removed operators).
+- `inventory_snapshot_jobs` 1:N `inventory_snapshots` to record which run produced each snapshot row.
+- `operator_sessions` links each active browser session to exactly one operator; sessions drive `current_setting('app.operator_id')` for RLS enforcement.
+
+3. **Indexes**
+
+- `warehouses`: unique index on `lower(code)`; partial index `idx_warehouses_active` on `(code)` where `is_active = true` to accelerate lookups; btree index on `(is_active, country_code)` for filtered listings.
+- `commodities`: unique index on `lower(sku)`; partial index on `(sku)` where `is_active = true`; gin index on `control_parameters` for JSON containment predicates.
+- `operators`: unique index on `lower(username)`; partial index on `(id)` where `is_active = true` to speed authentication checks.
+- `operator_sessions`: unique index on `session_token`; btree index on `(operator_id, expires_at)`; partial index where `revoked_at IS NULL` and `expires_at > now()` to purge expired sessions quickly.
+- `readings`: composite index `idx_readings_wh_time` on `(warehouse_id, occurred_at DESC)`; composite index on `(commodity_id, occurred_at DESC)`; hash index on `sku`; partial index `idx_readings_active_wh` on `(warehouse_id, commodity_id)` where `quantity > 0`; gin index on `metadata` for filtering by custom attributes.
+- `inventory_snapshots`: clustered primary key on `(warehouse_id, commodity_id)`; covering index on `(commodity_id, warehouse_id)` for commodity-centric queries; index on `last_calculated_at` to assess freshness.
+
+4. **PostgreSQL policies (RLS)**
+
+```sql
+-- Role setup
+CREATE ROLE app_reader NOINHERIT;
+CREATE ROLE api_writer NOINHERIT;
+
+-- Warehouses (read-only to operators, full access to API)
+ALTER TABLE warehouses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY warehouse_active_select
+	ON warehouses FOR SELECT TO app_reader
+	USING (is_active);
+CREATE POLICY warehouse_writer
+	ON warehouses FOR ALL TO api_writer
+	USING (true) WITH CHECK (true);
+
+-- Commodities
+ALTER TABLE commodities ENABLE ROW LEVEL SECURITY;
+CREATE POLICY commodity_active_select
+	ON commodities FOR SELECT TO app_reader
+	USING (is_active);
+CREATE POLICY commodity_writer
+	ON commodities FOR ALL TO api_writer
+	USING (true) WITH CHECK (true);
+
+-- Readings (operators see only their active warehouse/item rows; API can see all)
+ALTER TABLE readings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY readings_operator_select
+	ON readings FOR SELECT TO app_reader
+	USING (
+		(is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id))
+		AND (
+			operator_id = current_setting('app.operator_id', true)::uuid
+			OR current_setting('app.is_admin', true)::boolean
+		)
+	);
+CREATE POLICY readings_writer
+	ON readings FOR INSERT TO api_writer
+	WITH CHECK (is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id));
+
+-- Inventory snapshots
+ALTER TABLE inventory_snapshots ENABLE ROW LEVEL SECURITY;
+CREATE POLICY snapshots_active_read
+	ON inventory_snapshots FOR SELECT TO app_reader
+	USING (is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id));
+CREATE POLICY snapshots_writer
+	ON inventory_snapshots FOR ALL TO api_writer
+	USING (true) WITH CHECK (true);
+
+-- Operator sessions (operators can only touch their own rows)
+ALTER TABLE operator_sessions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY session_owner_select
+	ON operator_sessions FOR SELECT TO app_reader
+	USING (operator_id = current_setting('app.operator_id', true)::uuid);
+CREATE POLICY session_owner_update
+	ON operator_sessions FOR UPDATE TO app_reader
+	USING (operator_id = current_setting('app.operator_id', true)::uuid)
+	WITH CHECK (operator_id = current_setting('app.operator_id', true)::uuid);
+CREATE POLICY session_admin_all
+	ON operator_sessions FOR ALL TO api_writer
+	USING (true) WITH CHECK (true);
+```
+
+_Helper functions `is_active_warehouse(uuid)` and `is_active_commodity(uuid)` return true when the referenced row exists with `is_active = true`; they are implemented as stable SQL functions to keep policies readable._
+
+5. **Additional notes**
+
+- `gen_random_uuid()` requires the `pgcrypto` extension; enable it in the migration bootstrap.
+- `readings` remains append-only via a `BEFORE UPDATE OR DELETE` trigger that raises an exception, ensuring auditability; corrections are handled by compensating entries.
+- Application services must set `SET LOCAL app.operator_id = '<uuid>';` and `SET LOCAL app.is_admin = 't'/'f';` per request so RLS policies can evaluate operator-level access.
+- `control_parameters` and `metadata` fields allow future validations (e.g., enforcing cold-chain range) without schema churn while still remaining queryable through GIN indexes.
+- Archiving strategy: monitor `readings` row count; when retention thresholds are exceeded, move the oldest rows to a `readings_history` table that shares the schema and inherits indexes/RLS policies.
