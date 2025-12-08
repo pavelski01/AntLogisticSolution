@@ -28,6 +28,21 @@ public class AntLogisticsDbContext : DbContext
     public DbSet<Commodity> Commodities { get; set; } = null!;
 
     /// <summary>
+    /// Gets or sets the Operators DbSet.
+    /// </summary>
+    public DbSet<Operator> Operators { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the OperatorSessions DbSet.
+    /// </summary>
+    public DbSet<OperatorSession> OperatorSessions { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the Readings DbSet.
+    /// </summary>
+    public DbSet<Reading> Readings { get; set; } = null!;
+
+    /// <summary>
     /// Configures the entity model and relationships.
     /// </summary>
     /// <param name="modelBuilder">The model builder instance.</param>
@@ -66,6 +81,11 @@ public class AntLogisticsDbContext : DbContext
             entity.Property(e => e.PostalCode)
                 .HasMaxLength(20);
 
+            entity.Property(e => e.DefaultZone)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValue("DEFAULT");
+
             entity.Property(e => e.Capacity)
                 .HasPrecision(18, 2);
 
@@ -75,6 +95,10 @@ public class AntLogisticsDbContext : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .IsRequired();
+
+            // Partial index for active warehouses
+            entity.HasIndex(e => new { e.IsActive, e.Country })
+                .HasDatabaseName("idx_warehouses_active");
         });
 
         // Configure Commodity entity
@@ -120,6 +144,14 @@ public class AntLogisticsDbContext : DbContext
             entity.Property(e => e.MinimumStockLevel)
                 .HasPrecision(18, 3);
 
+            entity.Property(e => e.BatchRequired)
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.ControlParameters)
+                .IsRequired()
+                .HasDefaultValue("{}");
+
             entity.Property(e => e.IsActive)
                 .IsRequired()
                 .HasDefaultValue(true);
@@ -132,6 +164,154 @@ public class AntLogisticsDbContext : DbContext
                 .WithMany(w => w.Commodities)
                 .HasForeignKey(e => e.WarehouseId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Partial index for active commodities
+            entity.HasIndex(e => new { e.IsActive, e.Sku })
+                .HasDatabaseName("idx_commodities_active");
+        });
+
+        // Configure Operator entity
+        modelBuilder.Entity<Operator>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Username)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.HasIndex(e => e.Username)
+                .IsUnique();
+
+            entity.Property(e => e.PasswordHash)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.FullName)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(e => e.Role)
+                .IsRequired()
+                .HasConversion<string>()
+                .HasDefaultValue(OperatorRole.Operator);
+
+            entity.Property(e => e.IdleTimeoutMinutes)
+                .IsRequired()
+                .HasDefaultValue(30);
+
+            entity.Property(e => e.IsActive)
+                .IsRequired()
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+        });
+
+        // Configure OperatorSession entity
+        modelBuilder.Entity<OperatorSession>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.SessionToken)
+                .IsRequired();
+
+            entity.HasIndex(e => e.SessionToken)
+                .IsUnique();
+
+            entity.Property(e => e.IssuedAt)
+                .IsRequired();
+
+            entity.Property(e => e.LastSeenAt)
+                .IsRequired();
+
+            entity.Property(e => e.ExpiresAt)
+                .IsRequired();
+
+            entity.Property(e => e.ClientIp)
+                .HasMaxLength(45);
+
+            entity.Property(e => e.UserAgent)
+                .HasMaxLength(500);
+
+            // Configure relationship with Operator
+            entity.HasOne(e => e.Operator)
+                .WithMany(o => o.Sessions)
+                .HasForeignKey(e => e.OperatorId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure Reading entity
+        modelBuilder.Entity<Reading>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Sku)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.UnitOfMeasure)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            entity.Property(e => e.Quantity)
+                .IsRequired()
+                .HasPrecision(18, 3);
+
+            entity.Property(e => e.BatchNumber)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.WarehouseZone)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValue("DEFAULT");
+
+            entity.Property(e => e.CreatedBy)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(e => e.Source)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasDefaultValue("manual");
+
+            entity.Property(e => e.OccurredAt)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+
+            entity.Property(e => e.Metadata)
+                .IsRequired()
+                .HasDefaultValue("{}");
+
+            // Configure relationships
+            entity.HasOne(e => e.Warehouse)
+                .WithMany(w => w.Readings)
+                .HasForeignKey(e => e.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Commodity)
+                .WithMany(c => c.Readings)
+                .HasForeignKey(e => e.CommodityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Operator)
+                .WithMany(o => o.Readings)
+                .HasForeignKey(e => e.OperatorId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Indexes for performance
+            entity.HasIndex(e => new { e.WarehouseId, e.OccurredAt })
+                .HasDatabaseName("idx_readings_wh_time");
+
+            entity.HasIndex(e => new { e.CommodityId, e.OccurredAt })
+                .HasDatabaseName("idx_readings_commodity_time");
+
+            entity.HasIndex(e => e.Sku)
+                .HasDatabaseName("idx_readings_sku");
         });
 
         // Seed initial warehouse data

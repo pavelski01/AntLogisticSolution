@@ -1,40 +1,159 @@
+---
+applyTo: '**'
+---
+
 # GitHub Copilot Instructions for AntLogisticSolution
 
 ## Project Overview
-This is the Ant Logistics solution built with .NET 9 and Aspire 13.0 for cloud-native microservices orchestration.
+Warehouse management system (WMS) built with .NET 10 and Aspire 13.0. Architecture: backend API (`AntLogistics.Core`), Astro+React frontend (`AntLogistics.UI`), PostgreSQL database, orchestrated via Aspire AppHost.
 
-## Architecture
-- <technology>.NET Aspire</technology>: Used for service orchestration and observability
-- <pattern>Clean Architecture</pattern>: Separation of concerns across layers
-- <pattern>Microservices</pattern>: Distributed services pattern
-- <component>ServiceDefaults</component>: Shared configurations for resilience, telemetry, and service discovery
+## Running the Application
+
+**Primary workflow** (from solution root):
+```powershell
+dotnet run --project src/AntLogistics.AppHost
+```
+This starts the entire stack: PostgreSQL, Core API, UI proxy, and Astro dev server (when run with `--use-astro-dev` flag).
+
+**Frontend-only development**:
+```powershell
+cd src/AntLogistics.UI/ClientApp
+npm run dev  # Astro dev server on port 4321
+```
+
+**Database migrations** (auto-applied on Core startup, or manually):
+```powershell
+cd src/AntLogistics.Core
+dotnet ef migrations add MigrationName
+dotnet ef database update
+```
+
+## Architecture Patterns
+
+### Service Communication
+- **Aspire service discovery**: UI proxy uses `https+http://core` URI scheme (see `ServiceCollectionExtensions.cs`)
+- **Astro dev server proxy**: Configured in `astro.config.mjs` to proxy `/api` requests to Core API using environment variables `services__core__http__0`
+- **UI middleware chain**: Static files → Astro dev proxy → API proxy → SPA fallback (see `ApplicationBuilderExtensions.cs`)
+
+### Project Structure (Actual)
+```
+src/
+├── AntLogistics.AppHost/          # Aspire orchestration (PostgreSQL + services)
+├── AntLogistics.ServiceDefaults/  # Shared: OpenTelemetry, health checks, resilience
+├── AntLogistics.Core/             # Backend API (Minimal APIs + EF Core)
+│   ├── Data/Models/               # Domain entities (Warehouse, Commodity, etc.)
+│   ├── Dto/                       # Request/response DTOs
+│   └── Services/                  # Business logic (interface + implementation)
+└── AntLogistics.UI/               # ASP.NET Core proxy host
+    └── ClientApp/                 # Astro + React frontend (TypeScript, Tailwind v4)
+```
+
+### Key Technical Details
+- **Target Framework**: .NET 10 (`net10.0` in all projects)
+- **Central Package Management**: Versions in `Directory.Packages.props`
+- **Nullable enabled**: All projects have `<Nullable>enable</Nullable>`
+- **Implicit usings**: Enabled globally via `Directory.Build.props`
+- **API versioning**: All endpoints use `/api/v1/` prefix
+- **Soft deletes**: Entities use `IsActive` + `DeactivatedAt` pattern (see `Warehouse.cs`)
 
 ## Coding Standards
 
-### C# Guidelines
-- Use <version>C# 12</version> features and <version>.NET 9</version> runtime
-- Enable <feature>nullable reference types</feature> in all projects
-- Prefer <feature>primary constructors</feature> for simple classes
-- Use <feature>record types</feature> for DTOs and immutable data
-- Apply <feature>file-scoped namespaces</feature> to reduce indentation
-- Use <feature>implicit usings</feature> where appropriate
+### C# Patterns (As Actually Used)
 
-### Naming Conventions
-- <convention>PascalCase</convention>: Classes, methods, properties, interfaces (prefix with `I`)
-- <convention>camelCase</convention>: Local variables, parameters, private fields
-- <convention>Descriptive names</convention>: Convey intent clearly (e.g., `GetOrdersByCustomerId` not `GetOrders`)
-- <convention>Abbreviations</convention>: Treat 2-letter abbreviations as words (e.g., `Io`, `Id`), capitalize 3+ letters only first letter (e.g., `Dto`, `Api`, `Html`, `Xml`)
+**Minimal APIs** (see `AntLogistics.Core/Program.cs`):
+```csharp
+app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWarehouseService service, CancellationToken cancellationToken) =>
+{
+    var warehouse = await service.CreateWarehouseAsync(request, cancellationToken);
+    return Results.Created($"/api/v1/warehouses/{warehouse.Id}", warehouse);
+});
+```
 
-### Code Organization
+**Service layer** (see `WarehouseService.cs`):
+- Constructor injection with null checks
+- Structured logging with parameters: `_logger.LogInformation("Creating warehouse with code {Code}", request.Code)`
+- Throw `InvalidOperationException` for business rule violations
+- Use `AsNoTracking()` for read-only queries
+
+**Database context** (see `AntLogisticsDbContext.cs`):
+- Automatic timestamp management via `SaveChangesAsync` override
+- Configure entities in `OnModelCreating` with Fluent API
+- Use `DbSet<T>` properties with `= null!` (EF Core initialization pattern)
+
+### Frontend Patterns
+
+**Astro + React hybrid**:
+- Static pages in `.astro` files (server-rendered)
+- Interactive components in `.tsx` with `client:load` directive
+- API calls via `/api` proxy (configured in `astro.config.mjs`)
+
+**Styling**:
+- Tailwind CSS v4 via `@tailwindcss/vite` plugin
+- Use `@layer` directives for custom utilities
+
+### Extension Method Conventions
+Custom extensions in `Extensions/` folders:
+- `AddServiceDefaults()` - Aspire integration (OpenTelemetry, health, resilience)
+- `AddCoreApiClient()` - Registers HttpClient for Core API with service discovery
+- `MapCoreApiProxy()` - Proxies `/api/{**path}` to Core service
+- `UseAstroDevServerProxy()` - Conditional proxy to Astro dev server (dev only)
+
+## Configuration & Environment
+
+**Connection strings**: Injected by Aspire AppHost as `antlogistics`, fallback to `DefaultConnection`
+
+**AppHost orchestration** (see `AppHost/Program.cs`):
+```csharp
+var database = builder.AddPostgres("postgres").WithPgAdmin().AddDatabase("antlogistics");
+var core = builder.AddProject<Projects.AntLogistics_Core>("core").WithReference(database);
+var ui = builder.AddProject<Projects.AntLogistics_UI>("ui").WithReference(core);
+builder.AddNpmApp("astro-dev", "../AntLogistics.UI/ClientApp", "dev")
+    .WithReference(core).WithParentRelationship(ui);
 ```
-AntLogisticSolution/
-├── src/
-│   ├── AntLogistics.AppHost/          # Aspire orchestration
-│   ├── AntLogistics.ServiceDefaults/  # Shared Aspire config
-│   ├── AntLogistics.Api/              # RESTful API services
-│   ├── AntLogistics.Domain/           # Business logic
-│   └── AntLogistics.Infrastructure/   # Data access
-```
+
+**Startup behavior**:
+- Core API auto-applies migrations on startup (see `Program.cs` lines 48-65)
+- CORS enabled for development with `AllowAnyOrigin`
+
+## Entity & Data Patterns
+
+**Domain models** inherit timestamps:
+- `CreatedAt` / `UpdatedAt` managed automatically in `SaveChangesAsync`
+- Soft deletes via `IsActive` + `DeactivatedAt?`
+- Lowercase codes enforced in property setters (e.g., `Code.ToLowerInvariant()`)
+
+**Validation**: Business rules in services, throw `InvalidOperationException` for violations
+
+**DTOs**: Separate request/response types (e.g., `CreateWarehouseRequest` → `WarehouseResponse`)
+
+## Testing & Debugging
+
+**Health checks**: `/health` and `/alive` endpoints auto-configured by ServiceDefaults
+
+**Aspire Dashboard**: Access telemetry, logs, and traces when running via AppHost
+
+**Common issues**:
+- File locking during build: Stop all .NET processes (Ctrl+C on AppHost terminal)
+- Connection errors: Ensure PostgreSQL container is running (check Aspire dashboard)
+- Astro proxy not working: Verify environment variables `services__core__http__0` are set
+
+## Frontend-Specific Guidelines
+
+See `.github/instructions/astro.instructions.md` and `react.instructions.md` for detailed Astro/React patterns.
+
+**Key conventions**:
+- Functional components with hooks (no classes)
+- TypeScript interfaces over types
+- Named exports for components
+- Tailwind for styling, Zod for validation, Zustand for state
+
+## Git & Development
+
+**Commit format**: Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)
+
+**Documentation**: Express intent through code, not comments. Use XML docs for public APIs only.
+
+**Dependencies**: Add packages via `Directory.Packages.props` (Central Package Management)
 
 ## Code Quality
 
