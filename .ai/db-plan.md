@@ -2,110 +2,87 @@
 
 1. **List of tables with columns, data types, and constraints**
 
-	 #### `warehouses`
-	 | Column | Type | Constraints | Description |
-	 | --- | --- | --- | --- |
-	 | id | uuid | PK, default gen_random_uuid() | Stable identifier |
-	 | code | varchar(50) | NOT NULL, unique, check (code = lower(code)) | Human-friendly short code |
-	 | name | varchar(200) | NOT NULL | Display name |
-	 | address_line | text | NOT NULL | Street and number |
-	 | city | varchar(100) | NOT NULL | City |
-	 | country_code | char(2) | NOT NULL, check (country_code ~ '^[A-Z]{2}$') | ISO 3166-1 alpha-2 |
-	 | postal_code | varchar(20) | NULL | Postal/zip code |
-	 | default_zone | varchar(100) | NOT NULL | Default operational zone |
-	 | capacity | numeric(18,2) | NOT NULL, check (capacity > 0) | Warehouse capacity in configured units |
-	 | is_active | boolean | NOT NULL default true | Soft-active flag |
-	 | deactivated_at | timestamptz | NULL | Timestamp when disabled |
-	 | created_at | timestamptz | NOT NULL default now() | Audit |
-	 | updated_at | timestamptz | NOT NULL default now() | Audit |
+    #### `warehouses`
+    | Column | Type | Constraints | Description |
+    | --- | --- | --- | --- |
+    | id | uuid | PK, default gen_random_uuid() | Stable identifier |
+    | code | varchar(50) | NOT NULL, unique, check (code = lower(code)) | Human-friendly short code |
+    | name | varchar(200) | NOT NULL | Display name |
+    | address_line | text | NOT NULL | Street and number |
+    | city | varchar(100) | NOT NULL | City |
+    | country_code | char(2) | NOT NULL, check (country_code ~ '^[A-Z]{2}$') | ISO 3166-1 alpha-2 |
+    | postal_code | varchar(20) | NULL | Postal/zip code |
+    | default_zone | varchar(100) | NOT NULL | Default operational zone |
+    | capacity | numeric(18,2) | NOT NULL, check (capacity > 0) | Warehouse capacity in configured units |
+    | is_active | boolean | NOT NULL default true | Soft-active flag |
+    | deactivated_at | timestamptz | NULL | Timestamp when disabled |
+    | created_at | timestamptz | NOT NULL default now() | Audit |
+    | updated_at | timestamptz | NOT NULL default now() | Audit |
 
-	 #### `commodities`
-	 | Column | Type | Constraints | Description |
-	 | --- | --- | --- | --- |
-	 | id | uuid | PK, default gen_random_uuid() | Stable identifier |
-	 | sku | varchar(100) | NOT NULL, unique (lower(sku)), check (sku = lower(sku)) | Global SKU |
-	 | name | varchar(200) | NOT NULL | Item name |
-	 | unit_of_measure | varchar(20) | NOT NULL | Base UOM (e.g. kg) |
-	 | batch_required | boolean | NOT NULL default false | Requires batch tracking |
-	 | control_parameters | jsonb | NOT NULL default '{}'::jsonb | Additional constraints (temperature, etc.) |
-	 | is_active | boolean | NOT NULL default true | Soft-active flag |
-	 | deactivated_at | timestamptz | NULL | Timestamp when disabled |
-	 | created_at | timestamptz | NOT NULL default now() | Audit |
-	 | updated_at | timestamptz | NOT NULL default now() | Audit |
+    #### `commodities`
+    | Column | Type | Constraints | Description |
+    | --- | --- | --- | --- |
+    | id | uuid | PK, default gen_random_uuid() | Stable identifier |
+    | sku | varchar(100) | NOT NULL, unique (lower(sku)), check (sku = lower(sku)) | Global SKU |
+    | name | varchar(200) | NOT NULL | Item name |
+    | unit_of_measure | varchar(20) | NOT NULL | Base UOM (e.g. kg) |
+    | batch_required | boolean | NOT NULL default false | Requires batch tracking |
+    | control_parameters | jsonb | NOT NULL default '{}'::jsonb | Additional constraints (temperature, etc.) |
+    | is_active | boolean | NOT NULL default true | Soft-active flag |
+    | deactivated_at | timestamptz | NULL | Timestamp when disabled |
+    | created_at | timestamptz | NOT NULL default now() | Audit |
+    | updated_at | timestamptz | NOT NULL default now() | Audit |
 
-	 #### `operators`
-	 | Column | Type | Constraints | Description |
-	 | --- | --- | --- | --- |
-	 | id | uuid | PK, default gen_random_uuid() | Operator identifier |
-	 | username | varchar(100) | NOT NULL, unique (lower(username)) | Login name |
-	 | password_hash | varchar(255) | NOT NULL | Bcrypt hash |
-	 | full_name | varchar(200) | NOT NULL | Display name |
-	 | role | varchar(30) | NOT NULL default 'operator', check (role in ('operator','admin')) | Single-role model with admin override |
-	 | idle_timeout_minutes | integer | NOT NULL default 30, check (idle_timeout_minutes between 5 and 180) | Session timeout policy |
-	 | is_active | boolean | NOT NULL default true | Soft-active flag |
-	 | last_login_at | timestamptz | NULL | Last successful login |
-	 | created_at | timestamptz | NOT NULL default now() | Audit |
-	 | updated_at | timestamptz | NOT NULL default now() | Audit |
+    #### `operators`
+    | Column | Type | Constraints | Description |
+    | --- | --- | --- | --- |
+    | id | uuid | PK, default gen_random_uuid() | Operator identifier |
+    | username | varchar(100) | NOT NULL, unique (lower(username)) | Login name |
+    | password_hash | varchar(255) | NOT NULL | Bcrypt hash |
+    | full_name | varchar(200) | NOT NULL | Display name |
+    | role | varchar(30) | NOT NULL default 'operator', check (role in ('operator','admin')) | Single-role model with admin override |
+    | idle_timeout_minutes | integer | NOT NULL default 30, check (idle_timeout_minutes between 5 and 180) | Session timeout policy |
+    | is_active | boolean | NOT NULL default true | Soft-active flag |
+    | last_login_at | timestamptz | NULL | Last successful login |
+    | created_at | timestamptz | NOT NULL default now() | Audit |
+    | updated_at | timestamptz | NOT NULL default now() | Audit |
 
-	 #### `operator_sessions`
-	 | Column | Type | Constraints | Description |
-	 | --- | --- | --- | --- |
-	 | id | uuid | PK, default gen_random_uuid() | Session row |
-	 | operator_id | uuid | NOT NULL, FK -> operators(id) ON DELETE CASCADE | Owner |
-	 | session_token | uuid | NOT NULL, unique | Server-issued token |
-	 | issued_at | timestamptz | NOT NULL default now() | Creation time |
-	 | last_seen_at | timestamptz | NOT NULL default now() | Sliding expiration checkpoint |
-	 | expires_at | timestamptz | NOT NULL, check (expires_at > issued_at) | Absolute expiry |
-	 | revoked_at | timestamptz | NULL | Manual revocation |
-	 | client_ip | inet | NULL | IP for audit |
-	 | user_agent | text | NULL | UA string |
+    #### `operator_sessions`
+    | Column | Type | Constraints | Description |
+    | --- | --- | --- | --- |
+    | id | uuid | PK, default gen_random_uuid() | Session row |
+    | operator_id | uuid | NOT NULL, FK -> operators(id) ON DELETE CASCADE | Owner |
+    | session_token | uuid | NOT NULL, unique | Server-issued token |
+    | issued_at | timestamptz | NOT NULL default now() | Creation time |
+    | last_seen_at | timestamptz | NOT NULL default now() | Sliding expiration checkpoint |
+    | expires_at | timestamptz | NOT NULL, check (expires_at > issued_at) | Absolute expiry |
+    | revoked_at | timestamptz | NULL | Manual revocation |
+    | client_ip | inet | NULL | IP for audit |
+    | user_agent | text | NULL | UA string |
 
-	 #### `readings`
-	 | Column | Type | Constraints | Description |
-	 | --- | --- | --- | --- |
-	 | id | bigint | PK, generated always as identity | Append-only identifier |
-	 | warehouse_id | uuid | NOT NULL, FK -> warehouses(id) | Warehouse |
-	 | commodity_id | uuid | NOT NULL, FK -> commodities(id) | Item |
-	 | sku | varchar(100) | NOT NULL | Denormalized SKU copy |
-	 | unit_of_measure | varchar(20) | NOT NULL | UOM at capture time |
-	 | quantity | numeric(18,3) | NOT NULL, check (quantity > 0) | Captured quantity |
-	 | batch_number | varchar(100) | NULL | Optional batch/lot |
-	 | warehouse_zone | varchar(100) | NOT NULL default 'DEFAULT' | Zone of the reading |
-	 | operator_id | uuid | NULL, FK -> operators(id) ON DELETE SET NULL | Capturing operator |
-	 | created_by | text | NOT NULL | Immutable operator label |
-	 | source | varchar(50) | NOT NULL default 'manual' | Manual/API/import |
-	 | occurred_at | timestamptz | NOT NULL default now() | Physical event time |
-	 | created_at | timestamptz | NOT NULL default now() | Persisted timestamp |
-	 | metadata | jsonb | NOT NULL default '{}'::jsonb | Free-form attributes |
-
-	 #### `inventory_snapshot_jobs`
-	 | Column | Type | Constraints | Description |
-	 | --- | --- | --- | --- |
-	 | id | uuid | PK, default gen_random_uuid() | Job run identifier |
-	 | started_at | timestamptz | NOT NULL default now() | Job start |
-	 | completed_at | timestamptz | NULL | Job completion |
-	 | status | varchar(20) | NOT NULL, check (status in ('running','succeeded','failed')) | Execution status |
-	 | rows_written | integer | NOT NULL default 0 | Snapshot rows processed |
-	 | error_message | text | NULL | Failure details |
-
-	 #### `inventory_snapshots`
-	 | Column | Type | Constraints | Description |
-	 | --- | --- | --- | --- |
-	 | warehouse_id | uuid | NOT NULL, FK -> warehouses(id) | Warehouse |
-	 | commodity_id | uuid | NOT NULL, FK -> commodities(id) | Item |
-	 | sku | varchar(100) | NOT NULL | Denormalized SKU |
-	 | quantity | numeric(18,3) | NOT NULL | Current stock level |
-	 | last_calculated_at | timestamptz | NOT NULL | Last async calc |
-	 | calculation_source | varchar(50) | NOT NULL default 'async_job' | Origin identifier |
-	 | job_run_id | uuid | NULL, FK -> inventory_snapshot_jobs(id) ON DELETE SET NULL | Back-reference |
-	 | PRIMARY KEY (warehouse_id, commodity_id) | | | Composite PK |
+    #### `readings`
+    | Column | Type | Constraints | Description |
+    | --- | --- | --- | --- |
+    | id | bigint | PK, generated always as identity | Append-only identifier |
+    | warehouse_id | uuid | NOT NULL, FK -> warehouses(id) | Warehouse |
+    | commodity_id | uuid | NOT NULL, FK -> commodities(id) | Item |
+    | sku | varchar(100) | NOT NULL | Denormalized SKU copy |
+    | unit_of_measure | varchar(20) | NOT NULL | UOM at capture time |
+    | quantity | numeric(18,3) | NOT NULL, check (quantity > 0) | Captured quantity |
+    | batch_number | varchar(100) | NULL | Optional batch/lot |
+    | warehouse_zone | varchar(100) | NOT NULL default 'DEFAULT' | Zone of the reading |
+    | operator_id | uuid | NULL, FK -> operators(id) ON DELETE SET NULL | Capturing operator |
+    | created_by | text | NOT NULL | Immutable operator label |
+    | source | varchar(50) | NOT NULL default 'manual' | Manual/API/import |
+    | occurred_at | timestamptz | NOT NULL default now() | Physical event time |
+    | created_at | timestamptz | NOT NULL default now() | Persisted timestamp |
+    | metadata | jsonb | NOT NULL default '{}'::jsonb | Free-form attributes |
 
 2. **Relationships between tables**
 
-- `warehouses` 1:N `readings` and 1:N `inventory_snapshots`; deleting a warehouse is blocked while dependent data exists.
-- `commodities` 1:N `readings` and 1:N `inventory_snapshots`; commodities remain referenced even when inactive.
+- `warehouses` 1:N `readings`; deleting a warehouse is blocked while dependent data exists.
+- `commodities` 1:N `readings`; commodities remain referenced even when inactive.
 - `operators` 1:N `operator_sessions` (cascade delete removes sessions) and 1:N `readings` (nullable FK to preserve history for removed operators).
-- `inventory_snapshot_jobs` 1:N `inventory_snapshots` to record which run produced each snapshot row.
 - `operator_sessions` links each active browser session to exactly one operator; sessions drive `current_setting('app.operator_id')` for RLS enforcement.
 
 3. **Indexes**
@@ -115,11 +92,10 @@
 - `operators`: unique index on `lower(username)`; partial index on `(id)` where `is_active = true` to speed authentication checks.
 - `operator_sessions`: unique index on `session_token`; btree index on `(operator_id, expires_at)`; partial index where `revoked_at IS NULL` and `expires_at > now()` to purge expired sessions quickly.
 - `readings`: composite index `idx_readings_wh_time` on `(warehouse_id, occurred_at DESC)`; composite index on `(commodity_id, occurred_at DESC)`; hash index on `sku`; partial index `idx_readings_active_wh` on `(warehouse_id, commodity_id)` where `quantity > 0`; gin index on `metadata` for filtering by custom attributes.
-- `inventory_snapshots`: clustered primary key on `(warehouse_id, commodity_id)`; covering index on `(commodity_id, warehouse_id)` for commodity-centric queries; index on `last_calculated_at` to assess freshness.
 
 4. **PostgreSQL policies (RLS)**
 
-```sql
+```
 -- Role setup
 CREATE ROLE app_reader NOINHERIT;
 CREATE ROLE api_writer NOINHERIT;
@@ -127,57 +103,48 @@ CREATE ROLE api_writer NOINHERIT;
 -- Warehouses (read-only to operators, full access to API)
 ALTER TABLE warehouses ENABLE ROW LEVEL SECURITY;
 CREATE POLICY warehouse_active_select
-	ON warehouses FOR SELECT TO app_reader
-	USING (is_active);
+    ON warehouses FOR SELECT TO app_reader
+    USING (is_active);
 CREATE POLICY warehouse_writer
-	ON warehouses FOR ALL TO api_writer
-	USING (true) WITH CHECK (true);
+    ON warehouses FOR ALL TO api_writer
+    USING (true) WITH CHECK (true);
 
 -- Commodities
 ALTER TABLE commodities ENABLE ROW LEVEL SECURITY;
 CREATE POLICY commodity_active_select
-	ON commodities FOR SELECT TO app_reader
-	USING (is_active);
+    ON commodities FOR SELECT TO app_reader
+    USING (is_active);
 CREATE POLICY commodity_writer
-	ON commodities FOR ALL TO api_writer
-	USING (true) WITH CHECK (true);
+    ON commodities FOR ALL TO api_writer
+    USING (true) WITH CHECK (true);
 
 -- Readings (operators see only their active warehouse/item rows; API can see all)
 ALTER TABLE readings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY readings_operator_select
-	ON readings FOR SELECT TO app_reader
-	USING (
-		(is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id))
-		AND (
-			operator_id = current_setting('app.operator_id', true)::uuid
-			OR current_setting('app.is_admin', true)::boolean
-		)
-	);
+    ON readings FOR SELECT TO app_reader
+    USING (
+        (is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id))
+        AND (
+            operator_id = current_setting('app.operator_id', true)::uuid
+            OR current_setting('app.is_admin', true)::boolean
+        )
+    );
 CREATE POLICY readings_writer
-	ON readings FOR INSERT TO api_writer
-	WITH CHECK (is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id));
-
--- Inventory snapshots
-ALTER TABLE inventory_snapshots ENABLE ROW LEVEL SECURITY;
-CREATE POLICY snapshots_active_read
-	ON inventory_snapshots FOR SELECT TO app_reader
-	USING (is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id));
-CREATE POLICY snapshots_writer
-	ON inventory_snapshots FOR ALL TO api_writer
-	USING (true) WITH CHECK (true);
+    ON readings FOR INSERT TO api_writer
+    WITH CHECK (is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id));
 
 -- Operator sessions (operators can only touch their own rows)
 ALTER TABLE operator_sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY session_owner_select
-	ON operator_sessions FOR SELECT TO app_reader
-	USING (operator_id = current_setting('app.operator_id', true)::uuid);
+    ON operator_sessions FOR SELECT TO app_reader
+    USING (operator_id = current_setting('app.operator_id', true)::uuid);
 CREATE POLICY session_owner_update
-	ON operator_sessions FOR UPDATE TO app_reader
-	USING (operator_id = current_setting('app.operator_id', true)::uuid)
-	WITH CHECK (operator_id = current_setting('app.operator_id', true)::uuid);
+    ON operator_sessions FOR UPDATE TO app_reader
+    USING (operator_id = current_setting('app.operator_id', true)::uuid)
+    WITH CHECK (operator_id = current_setting('app.operator_id', true)::uuid);
 CREATE POLICY session_admin_all
-	ON operator_sessions FOR ALL TO api_writer
-	USING (true) WITH CHECK (true);
+    ON operator_sessions FOR ALL TO api_writer
+    USING (true) WITH CHECK (true);
 ```
 
 _Helper functions `is_active_warehouse(uuid)` and `is_active_commodity(uuid)` return true when the referenced row exists with `is_active = true`; they are implemented as stable SQL functions to keep policies readable._
