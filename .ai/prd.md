@@ -1,10 +1,10 @@
 # Product Requirements Document (PRD) - AntLogisticSolution
 
 ## 1. Product Overview
-AntLogistics WMS MVP is a web application that lets warehouse teams record foundational data about warehouses, items, and goods receipts. The solution is built on .NET 9 with .NET Aspire (AppHost, Core API, React/Vite UI) and uses PostgreSQL plus Entity Framework Core. The MVP delivers a simple browser interface where a single authenticated operator can manage master data and capture and save inventory readings. This minimal release focuses on intake processing and displaying current stock levels, enabling quick rollout and laying the groundwork for future modules (orders, reporting, integrations).
+AntLogistics WMS MVP is a web application that lets warehouse teams record foundational data about warehouses, items, and goods readings. The solution is built on .NET 9 with .NET Aspire (AppHost, Core API, React/Vite UI) and uses PostgreSQL plus Entity Framework Core. The MVP delivers a simple browser interface where a single authenticated operator can manage master data and capture and save inventory readings. This minimal release focuses on intake processing and displaying current stock levels, enabling quick rollout and laying the groundwork for future modules (orders, reporting, integrations).
 
 ## 2. User Problem
-Warehouse teams currently track stock movements manually (spreadsheets, email), which leads to errors, stale data, and poor visibility. Operators lack a single source of truth about locations, cannot quickly register receipts, and logistics decisions rely on incomplete information. Basic access control to warehouse data is also missing. The MVP addresses these issues by providing a simplified WMS that supports adding warehouses and items, registering receipts, and browsing up-to-date inventory once logged in.
+Warehouse teams currently track stock movements manually (spreadsheets, email), which leads to errors, stale data, and poor visibility. Operators lack a single source of truth about locations, cannot quickly register readings, and logistics decisions rely on incomplete information. Basic access control to warehouse data is also missing. The MVP addresses these issues by providing a simplified WMS that supports adding warehouses and items, registering readings, and browsing up-to-date inventory once logged in.
 
 ## 3. Functional Requirements
 1. Warehouse registration: name, code, address, active status, capacity, default zone.
@@ -12,7 +12,7 @@ Warehouse teams currently track stock movements manually (spreadsheets, email), 
 3. Receipt (reading) entry for a selected warehouse with item, quantity, batch (if required), operator, and timestamp.
 4. UI data validation (required fields, numeric ranges, code uniqueness) with error messages in Polish.
 5. List views for warehouses, items, and receipt history with basic filters (name/code, date range).
-6. Inventory view per warehouse aggregating total receipts (no manual adjustments in MVP – raw receipt sums only).
+6. Inventory view per warehouse aggregating total readings (no manual adjustments in MVP – raw reading sums only).
 7. Simple account system: single user role, login-based authentication (username + bcrypt-hashed password), no password resets, ability for a technical admin to deactivate accounts outside the UI.
 8. Browser session management (token/cookie) with automatic logout after idle timeout (configurable, default 30 minutes).
 9. Logging of errors and unauthorized access attempts to the Observability center (Aspire/OpenTelemetry) for operations.
@@ -59,7 +59,7 @@ Scenario: US-003 Edit or deactivate warehouse
    When the operator updates those fields or toggles activity
    Then the changes are persisted and tagged in OpenTelemetry logs
    And deactivated warehouses are hidden in receipt selection lists
-   And historical receipts retain read-only references to the warehouse
+   And historical readings retain read-only references to the warehouse
 
 Scenario: US-004 Register item
    Given the operator is on the add item form with required fields name, SKU, unit
@@ -83,7 +83,7 @@ Scenario: US-006 View warehouse inventory
    And data refreshes after each receipt (live update or refresh indicator)
    And empty results display “No readings found for selected filters.”
 
-Scenario: US-007 Handle invalid receipts
+Scenario: US-007 Handle invalid readings
    Given the receipt form enforces validations on quantity, batch, and active selections
    When the operator submits incomplete or incorrect data
    Then front-end and back-end validation block the submission
@@ -93,14 +93,14 @@ Scenario: US-007 Handle invalid receipts
 
 Scenario: US-008 Operator activity list
    Given the operator opens the activity list view
-   When the system fetches the last n receipts for the logged-in user
-   Then the view shows date, warehouse, item, and quantity for each receipt
-   And the list updates automatically after new receipts without a full reload
+   When the system fetches the last n readings for the logged-in user
+   Then the view shows date, warehouse, item, and quantity for each reading
+   And the list updates automatically after new readings without a full reload
    And filters for warehouse and date limit the results
    And the UI indicates that CSV export is deferred beyond MVP
 
 ## 6. Success Metrics
-1. 95% of receipts recorded in the system within 2 minutes of physical intake (measured during pilot rollout).
+1. 95% of readings recorded in the system within 2 minutes of physical intake (measured during pilot rollout).
 2. At least 90% of active items and warehouses modeled in the system within 4 weeks of MVP launch.
 3. No more than 1 critical error (HTTP 5xx) per 500 requests over a month.
 4. Average API response time under 800 ms for receipt creation under MVP load.
@@ -109,7 +109,7 @@ Scenario: US-008 Operator activity list
 Checklist:
 - Every user story contains testable criteria, covering basic and alternate scenarios.  
 - Acceptance criteria are concrete (validations, messages, data effects).  
-- Stories cover all MVP interactions (login, warehouse/item CRUD, receipts, views).  
+- Stories cover all MVP interactions (login, warehouse/item CRUD, readings, views).  
 - Authentication and password storage requirements (bcrypt, no reset) are documented.  
 - Change audit is flagged as a roadmap item outside MVP.  
 - Document stored at .ai/prd.md for the team’s follow-up work.

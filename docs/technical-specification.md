@@ -1,7 +1,7 @@
 # AntLogisticSolution - Technical Specification
 
 ## Overview
-AntLogistics WMS MVP is a web application for warehouse management, enabling teams to record foundational data about warehouses, items (commodities), and goods receipts. Built with .NET 9 and .NET Aspire 13.0 for cloud-native microservices orchestration, using PostgreSQL and Entity Framework Core. The MVP delivers a browser interface where authenticated operators can manage master data and capture inventory readings.
+AntLogistics WMS MVP is a web application for warehouse management, enabling teams to record foundational data about warehouses, items (commodities), and goods readings. Built with .NET 9 and .NET Aspire 13.0 for cloud-native microservices orchestration, using PostgreSQL and Entity Framework Core. The MVP delivers a browser interface where authenticated operators can manage master data and capture inventory readings.
 
 ## Project Structure
 
@@ -192,7 +192,7 @@ PUT    /api/v1/warehouses/{id}          - Update warehouse
 DELETE /api/v1/warehouses/{id}          - Delete/deactivate warehouse
 GET    /api/v1/commodities              - List all commodities
 POST   /api/v1/commodities              - Create new commodity
-POST   /api/v1/receipts                 - Record goods receipt
+POST   /api/v1/readings                 - Record goods reading
 GET    /api/v1/inventory                - View inventory per warehouse
 ```
 
@@ -342,7 +342,7 @@ npm run dev
 - [ ] BI reports and analytics dashboards
 
 ## Success Metrics (MVP)
-- 95% of receipts recorded within 2 minutes of physical intake
+- 95% of readings recorded within 2 minutes of physical intake
 - 90% of active items and warehouses modeled within 4 weeks of launch
 - No more than 1 critical error (HTTP 5xx) per 500 requests over a month
 - Average API response time under 800 ms for receipt creation
