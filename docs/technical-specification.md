@@ -3,22 +3,6 @@
 ## Overview
 AntLogistics WMS MVP is a web application for warehouse management, enabling teams to record foundational data about warehouses, items (commodities), and goods receipts. Built with .NET 9 and .NET Aspire 13.0 for cloud-native microservices orchestration, using PostgreSQL and Entity Framework Core. The MVP delivers a browser interface where authenticated operators can manage master data and capture inventory readings.
 
-## Technology Stack
-
-### Core Technologies
-- **Runtime**: .NET 10
-- **Language**: C# 12
-- **Orchestration**: .NET Aspire 13.0
-- **Database**: PostgreSQL with Entity Framework Core 9.0
-- **API**: ASP.NET Core Minimal APIs with OpenAPI/Swagger
-- **Frontend**: Astro + React/Vite (AntLogistics.UI)
-
-### Architecture Patterns
-- **Clean Architecture**: Separation of concerns across layers
-- **Microservices**: Distributed services pattern
-- **Service Discovery**: Built-in with Aspire
-- **Observability**: OpenTelemetry integration
-
 ## Project Structure
 
 ```
