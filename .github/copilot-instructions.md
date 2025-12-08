@@ -178,21 +178,9 @@ app.MapPost("/api/v1/orders", async (CreateOrderRequest request, IOrderService s
 
 ## Documentation
 
-### XML Comments
-Add XML documentation for public APIs:
-```csharp
-/// <summary>
-/// Retrieves an order by its unique identifier.
-/// </summary>
-/// <param name="orderId">The unique order identifier.</param>
-/// <returns>The order if found; otherwise, null.</returns>
-public async Task<Order?> GetOrderAsync(int orderId)
-```
-
 ### Code Comments
-- Keep comments <practice>up to date</practice> with code changes
-- Ensure comments are <focus>non-redundant</focus>
-- For code that is excessively complex, the recommendation is to <practice>suggest or implement refactoring rather than relying on detailed comments</practice>
+- Do not add comments in code  
+- Express intent through clear naming, simple structure, and tests.
 
 ## Git Practices
 
@@ -204,9 +192,6 @@ public async Task<Order?> GetOrderAsync(int orderId)
 ### Branch Strategy
 - `master`: Production-ready code
 - `develop`: Integration branch
-- `feature/*`: New features
-- `bugfix/*`: Bug fixes
-- `hotfix/*`: Urgent production fixes
 
 ## Additional Guidelines
 
