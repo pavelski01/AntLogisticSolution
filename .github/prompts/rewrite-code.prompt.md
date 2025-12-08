@@ -46,14 +46,11 @@ public string GetData(int id)
 }
 
 // After
-/// <summary>
-/// Retrieves formatted data for the specified identifier.
-/// </summary>
 public string? GetFormattedData(int id)
 {
     var entity = _repository.GetById(id);
     return entity is not null 
         ? $"{entity.Name} - {entity.Code}" 
-        : null;
+        : default;
 }
 ```
