@@ -354,7 +354,6 @@ dotnet run --project src/AntLogistics.Core
 
 ### Phase 4 (Planned)
 - [ ] Web UI (Blazor or React)
-- [ ] Mobile API support
 - [ ] Analytics dashboard
 - [ ] Third-party integrations
 
@@ -363,8 +362,6 @@ dotnet run --project src/AntLogistics.Core
 ### Git Workflow
 - **Branch**: `master` (production-ready)
 - **Feature branches**: `feature/*`
-- **Bug fixes**: `bugfix/*`
-- **Hot fixes**: `hotfix/*`
 
 ### Commit Messages
 - Use conventional commits: `feat:`, `fix:`, `chore:`, `docs:`
