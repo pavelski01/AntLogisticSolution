@@ -1,4 +1,4 @@
-# Technical Stack
+# Technology Stack
 
 ### Core Technologies
 - **Runtime**: .NET 10
