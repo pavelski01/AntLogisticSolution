@@ -12,7 +12,7 @@ Warehouse teams currently track stock movements manually (spreadsheets, email), 
 3. Receipt (reading) entry for a selected warehouse with item, quantity, batch (if required), operator, and timestamp.
 4. UI data validation (required fields, numeric ranges, code uniqueness) with error messages in Polish.
 5. List views for warehouses, items, and receipt history with basic filters (name/code, date range).
-6. Inventory view per warehouse aggregating total readings (no manual adjustments in MVP – raw reading sums only).
+6. Inventory status calculation based directly on aggregated readings. Each reading entry automatically updates the current stock level for the specific warehouse and item (no manual adjustments in MVP).
 7. Simple account system: single user role, login-based authentication (username + bcrypt-hashed password), no password resets, ability for a technical admin to deactivate accounts outside the UI.
 8. Browser session management (token/cookie) with automatic logout after idle timeout (configurable, default 30 minutes).
 9. Logging of errors and unauthorized access attempts to the Observability center (Aspire/OpenTelemetry) for operations.
@@ -73,14 +73,15 @@ Scenario: US-005 Record receipt
    And quantity must be greater than zero and batch is mandatory for batch-tracked items
    When the operator submits the receipt
    Then the system stores the operator identity and UTC timestamp
-   And the inventory view reflects the updated stock immediately
+   And the system immediately recalculates the inventory status by adding the reading quantity to the current stock
    And invalid conditions (no permission, inactive warehouse) show an error and cancel creation
 
 Scenario: US-006 View warehouse inventory
    Given the operator opens the inventory view
    When the operator applies filters for warehouse, item, or date range
-   Then the view shows columns warehouse, item, quantity, last update without reloading the page
-   And data refreshes after each receipt (live update or refresh indicator)
+   Then the view displays the calculated inventory status derived from the sum of all valid readings
+   And the view shows columns warehouse, item, total quantity, last update without reloading the page
+   And data refreshes after each receipt to reflect the new inventory status
    And empty results display “No readings found for selected filters.”
 
 Scenario: US-007 Handle invalid readings
@@ -104,7 +105,7 @@ Scenario: US-008 Operator activity list
 2. At least 90% of active items and warehouses modeled in the system within 4 weeks of MVP launch.
 3. No more than 1 critical error (HTTP 5xx) per 500 requests over a month.
 4. Average API response time under 800 ms for receipt creation under MVP load.
-5. At least 85% of pilot users report improved stock visibility compared to the previous manual process (survey).
+5. At least 25% of pilot users report improved stock visibility compared to the previous manual process (survey).
 
 Checklist:
 - Every user story contains testable criteria, covering basic and alternate scenarios.  
