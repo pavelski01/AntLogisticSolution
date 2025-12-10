@@ -6,7 +6,7 @@
 - **Orchestration**: .NET Aspire 13.0
 - **Database**: PostgreSQL with Entity Framework Core 9.0
 - **API**: ASP.NET Core Minimal APIs with OpenAPI/Swagger
-- **Frontend**: Astro + React/Vite (AntLogistics.UI)
+- **Frontend**: Astro, React/Vite, ESLint, Tailwind CSS (AntLogistics.UI)
 
 ### Architecture Patterns
 - **Clean Architecture**: Separation of concerns across layers
