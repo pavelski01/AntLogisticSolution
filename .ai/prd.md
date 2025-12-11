@@ -1,30 +1,41 @@
 # Product Requirements Document (PRD) - AntLogisticSolution
 
 ## 1. Product Overview
-AntLogistics WMS MVP is a web application that lets warehouse teams record foundational data about warehouses, items, and goods readings. The solution is built on .NET 9 with .NET Aspire (AppHost, Core API, React/Vite UI) and uses PostgreSQL plus Entity Framework Core. The MVP delivers a simple browser interface where a single authenticated operator can manage master data and capture and save inventory readings. This minimal release focuses on intake processing and displaying current stock levels, enabling quick rollout and laying the groundwork for future modules (orders, reporting, integrations).
+AntLogistics WMS MVP is a web application that lets warehouse teams record foundational data about warehouses, items, and goods readings. Built on .NET 10 with .NET Aspire 13.0 (AppHost, Core API, Astro+React UI) and PostgreSQL via Entity Framework Core, the codebase as of December 2025 delivers the foundational warehouse slice: Aspire orchestrates the Core API, applies migrations, and serves an Astro + React list view backed by warehouse APIs. Authentication, item catalog, and receipt capture remain planned for upcoming iterations.
 
 ## 2. User Problem
 Warehouse teams currently track stock movements manually (spreadsheets, email), which leads to errors, stale data, and poor visibility. Operators lack a single source of truth about locations, cannot quickly register readings, and logistics decisions rely on incomplete information. Basic access control to warehouse data is also missing. The MVP addresses these issues by providing a simplified WMS that supports adding warehouses and items, registering readings, and browsing up-to-date inventory once logged in.
 
 ## 3. Functional Requirements
-1. Warehouse registration: name, code, address, active status, capacity, default zone.
-2. Item definition: name, SKU, unit of measure, control parameters (e.g., batch/lot requirement), active status.
-3. Receipt (reading) entry for a selected warehouse with item, quantity, batch (if required), operator, and timestamp.
-4. UI data validation (required fields, numeric ranges, code uniqueness) with error messages in Polish.
-5. List views for warehouses, items, and receipt history with basic filters (name/code, date range).
-6. Inventory status calculation based directly on aggregated readings. Each reading entry automatically updates the current stock level for the specific warehouse and item (no manual adjustments in MVP).
-7. Simple account system: single user role, login-based authentication (username + bcrypt-hashed password), no password resets, ability for a technical admin to deactivate accounts outside the UI.
-8. Browser session management (token/cookie) with automatic logout after idle timeout (configurable, default 30 minutes).
-9. Logging of errors and unauthorized access attempts to the Observability center (Aspire/OpenTelemetry) for operations.
-10. Basic API documentation (OpenAPI) and user instructions describing the flow: login → add warehouse → add item → record receipt → view inventory.
+
+### Implemented
+1. Warehouse registration via `/api/v1/warehouses` covering name, unique code, address, postal code, capacity, and active flag.
+2. Warehouse retrieval endpoints (by id, by code, and list with `includeInactive`) consumed by the Astro `WarehouseList` React component.
+3. Automatic PostgreSQL migrations and OpenAPI exposure wired through Aspire service defaults with structured logging during startup.
+4. Astro front-end pages (`index.astro`, `warehouses.astro`) that render warehouse lists with loading, empty, and retry states.
+
+### Planned (MVP Backlog)
+- Item definition: name, SKU, unit of measure, control parameters (e.g., batch/lot requirement), active status.
+- Receipt (reading) entry for a selected warehouse with item, quantity, batch (if required), operator, and timestamp.
+- UI data validation (required fields, numeric ranges, code uniqueness) with error messages in Polish across API and UI layers.
+- List views for items and receipt history with filters (name/code, date range).
+- Inventory status calculation based on aggregated readings with automatic stock updates.
+- Simple account system: single user role, login-based authentication (username + bcrypt-hashed password), no password resets, technical admin deactivation outside the UI.
+- Browser session management (token/cookie) with automatic logout after idle timeout (configurable, default 30 minutes).
+- Logging of errors and unauthorized access attempts to the Observability center (Aspire/OpenTelemetry).
+- User-facing documentation describing the flow: login → add warehouse → add item → record receipt → view inventory.
 
 ## 4. Product Boundaries
-In scope (MVP):
-- Web application (React/Vite + ASP.NET Core API) orchestrated via .NET Aspire AppHost.
-- PostgreSQL data layer with Warehouse and Item models plus receipt storage.
-- Single user role, local login (bcrypt), no self-service registration.
-- Basic receipt handling without automatic allocation to bin locations.
-- UI/API-side validations and error messaging.
+In scope (MVP backlog):
+- Web application (Astro+React + ASP.NET Core API) orchestrated via .NET Aspire AppHost — baseline list experience delivered; CRUD/auth flows pending.
+- PostgreSQL data layer with Warehouse and Item models plus receipt storage — entities and migrations in place, inventory calculations pending.
+- Single user role, local login (bcrypt), no self-service registration — security slice not yet implemented.
+- Basic receipt handling without automatic allocation to bin locations — pending service and UI work.
+- UI/API-side validations and error messaging — duplicate warehouse protection shipped server-side; broader validations pending.
+
+Currently available in codebase:
+- Aspire-managed PostgreSQL and Core API with warehouse endpoints (create, fetch, list) and seed data.
+- Astro front-end (`warehouses.astro` + `WarehouseList.tsx`) listing active warehouses with retry/empty states.
 
 Out of scope (roadmap after MVP):
 - Integrations with ERP, e-commerce, carriers, or labeling systems.
