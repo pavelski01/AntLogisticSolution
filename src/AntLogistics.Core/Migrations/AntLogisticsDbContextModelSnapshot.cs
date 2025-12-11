@@ -30,12 +30,6 @@ namespace AntLogistics.Core.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<bool>("BatchRequired")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("batch_required");
-
                     b.Property<string>("ControlParameters")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -191,11 +185,6 @@ namespace AntLogistics.Core.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("BatchNumber")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("batch_number");
 
                     b.Property<Guid>("CommodityId")
                         .HasColumnType("uuid")

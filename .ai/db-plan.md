@@ -26,7 +26,6 @@
     | sku | varchar(100) | NOT NULL, unique (lower(sku)), check (sku = lower(sku)) | Global SKU |
     | name | varchar(200) | NOT NULL | Item name |
     | unit_of_measure | varchar(20) | NOT NULL | Base UOM (e.g. kg) |
-    | batch_required | boolean | NOT NULL default false | Requires batch tracking |
     | control_parameters | jsonb | NOT NULL default '{}'::jsonb | Additional constraints (temperature, etc.) |
     | is_active | boolean | NOT NULL default true | Soft-active flag |
     | deactivated_at | timestamptz | NULL | Timestamp when disabled |
@@ -56,7 +55,6 @@
     | sku | varchar(100) | NOT NULL | Denormalized SKU copy |
     | unit_of_measure | varchar(20) | NOT NULL | UOM at capture time |
     | quantity | numeric(18,3) | NOT NULL, check (quantity > 0) | Captured quantity |
-    | batch_number | varchar(100) | NULL | Optional batch/lot |
     | warehouse_zone | varchar(100) | NOT NULL default 'DEFAULT' | Zone of the reading |
     | operator_id | uuid | NULL, FK -> operators(id) ON DELETE SET NULL | Capturing operator |
     | created_by | text | NOT NULL | Immutable operator label |

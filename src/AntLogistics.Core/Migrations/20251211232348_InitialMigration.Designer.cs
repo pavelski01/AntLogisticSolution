@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AntLogistics.Core.Migrations
 {
     [DbContext(typeof(AntLogisticsDbContext))]
-    [Migration("20251211212420_InitialMigration")]
+    [Migration("20251211232348_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -32,12 +32,6 @@ namespace AntLogistics.Core.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<bool>("BatchRequired")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("batch_required");
 
                     b.Property<string>("ControlParameters")
                         .IsRequired()
@@ -194,11 +188,6 @@ namespace AntLogistics.Core.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("BatchNumber")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("batch_number");
 
                     b.Property<Guid>("CommodityId")
                         .HasColumnType("uuid")

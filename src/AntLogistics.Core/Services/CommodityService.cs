@@ -64,7 +64,6 @@ public class CommodityService : ICommodityService
             Sku = normalizedSku,
             Name = request.Name,
             UnitOfMeasure = request.UnitOfMeasure,
-            BatchRequired = request.BatchRequired,
             ControlParameters = string.IsNullOrWhiteSpace(request.ControlParameters) ? "{}" : request.ControlParameters,
             IsActive = request.IsActive
         };
@@ -145,7 +144,6 @@ public class CommodityService : ICommodityService
             Sku = commodity.Sku,
             Name = commodity.Name,
             UnitOfMeasure = commodity.UnitOfMeasure,
-            BatchRequired = commodity.BatchRequired,
             ControlParameters = commodity.ControlParameters,
             IsActive = commodity.IsActive,
             DeactivatedAt = commodity.DeactivatedAt,

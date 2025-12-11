@@ -26,11 +26,6 @@ public class CommodityResponse
     public string UnitOfMeasure { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets whether batch/lot tracking is required.
-    /// </summary>
-    public bool BatchRequired { get; set; }
-
-    /// <summary>
     /// Gets or sets control parameters as JSON.
     /// </summary>
     public string ControlParameters { get; set; } = "{}";

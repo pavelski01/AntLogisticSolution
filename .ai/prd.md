@@ -15,8 +15,8 @@ Warehouse teams currently track stock movements manually (spreadsheets, email), 
 4. Astro front-end pages (`index.astro`, `warehouses.astro`) that render warehouse lists with loading, empty, and retry states.
 
 ### Planned (MVP Backlog)
-- Item definition: name, SKU, unit of measure, control parameters (e.g., batch/lot requirement), active status.
-- Receipt (reading) entry for a selected warehouse with item, quantity, batch (if required), operator, and timestamp.
+- Item definition: name, SKU, unit of measure, control parameters, active status.
+- Receipt (reading) entry for a selected warehouse with item, quantity, operator, and timestamp.
 - UI data validation (required fields, numeric ranges, code uniqueness) with error messages in Polish across API and UI layers.
 - List views for items and receipt history with filters (name/code, date range).
 - Inventory status calculation based on aggregated readings with automatic stock updates.
@@ -75,13 +75,13 @@ Scenario: US-003 Edit or deactivate warehouse
 Scenario: US-004 Register item
    Given the operator is on the add item form with required fields name, SKU, unit
    And SKU values must be unique
-   When the operator submits the item and optionally flags batch requirements
+   When the operator submits the item
    Then the system validates required fields and rejects incomplete input with errors
    And a valid item becomes available in all relevant selection lists
 
 Scenario: US-005 Record receipt
-   Given the operator is on the receipt form with warehouse, item, quantity, date/time, and optional batch fields
-   And quantity must be greater than zero and batch is mandatory for batch-tracked items
+   Given the operator is on the receipt form with warehouse, item, quantity, and date/time
+   And quantity must be greater than zero
    When the operator submits the receipt
    Then the system stores the operator identity and UTC timestamp
    And the system immediately recalculates the inventory status by adding the reading quantity to the current stock
@@ -96,7 +96,7 @@ Scenario: US-006 View warehouse inventory
    And empty results display “No readings found for selected filters.”
 
 Scenario: US-007 Handle invalid readings
-   Given the receipt form enforces validations on quantity, batch, and active selections
+   Given the receipt form enforces validations on quantity and active selections
    When the operator submits incomplete or incorrect data
    Then front-end and back-end validation block the submission
    And the UI lists errors in Polish while preserving previously entered values (except sensitive fields)

@@ -32,11 +32,6 @@ public class Commodity
     public string UnitOfMeasure { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets whether batch/lot tracking is required for this commodity.
-    /// </summary>
-    public bool BatchRequired { get; set; }
-
-    /// <summary>
     /// Gets or sets control parameters as JSON (e.g., temperature range, humidity constraints).
     /// </summary>
     public string ControlParameters { get; set; } = "{}";

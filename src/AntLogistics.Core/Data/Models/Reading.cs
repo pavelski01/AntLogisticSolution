@@ -43,11 +43,6 @@ public class Reading
     public decimal Quantity { get; set; }
 
     /// <summary>
-    /// Gets or sets the batch/lot number (optional).
-    /// </summary>
-    public string? BatchNumber { get; set; }
-
-    /// <summary>
     /// Gets or sets the warehouse zone where the reading was taken.
     /// </summary>
     public string WarehouseZone { get; set; } = "DEFAULT";

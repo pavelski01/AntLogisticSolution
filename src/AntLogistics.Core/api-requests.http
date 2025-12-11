@@ -37,7 +37,6 @@ Content-Type: application/json
   "sku": "prod-001",
   "name": "Industrial Widget",
   "unitOfMeasure": "pcs",
-  "batchRequired": true,
   "controlParameters": "{\"temperature\": {\"min\": 5, \"max\": 25}}",
   "isActive": true
 }

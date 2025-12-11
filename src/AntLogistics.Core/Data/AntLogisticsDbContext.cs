@@ -156,10 +156,6 @@ public class AntLogisticsDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(20);
 
-            entity.Property(e => e.BatchRequired)
-                .HasColumnName("batch_required")
-                .HasDefaultValue(false);
-
             entity.Property(e => e.ControlParameters)
                 .HasColumnName("control_parameters")
                 .HasColumnType("jsonb")
@@ -289,10 +285,6 @@ public class AntLogisticsDbContext : DbContext
             entity.Property(e => e.Quantity)
                 .HasColumnName("quantity")
                 .HasPrecision(18, 3);
-
-            entity.Property(e => e.BatchNumber)
-                .HasColumnName("batch_number")
-                .HasMaxLength(100);
 
             entity.Property(e => e.WarehouseZone)
                 .HasColumnName("warehouse_zone")
