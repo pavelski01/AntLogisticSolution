@@ -5,7 +5,16 @@ import WarehouseList from "@/components/WarehouseList";
 
 <BaseLayout title="Ant Logistics - Warehouses">
   <div class="max-w-7xl mx-auto">
-    <h1 class="text-4xl font-bold mb-8">Warehouses</h1>
+    <div class="mb-8">
+      <div class="w-full h-48 sm:h-64 md:h-80 lg:h-96 rounded-xl shadow-lg mb-6 overflow-hidden bg-gray-100">
+        <img 
+          src="/images/ant_logistic2.jpg" 
+          alt="Warehouse Management" 
+          class="w-full h-full object-contain"
+        />
+      </div>
+      <h1 class="text-4xl font-bold">Warehouses</h1>
+    </div>
     <WarehouseList client:load />
   </div>
 </BaseLayout>

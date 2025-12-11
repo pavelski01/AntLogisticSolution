@@ -10,17 +10,25 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
     </p>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-      <div
-        class="bg-gradient-to-br from-purple-600 to-purple-800 p-8 rounded-xl shadow-lg hover:-translate-y-2 transition-transform duration-300"
+      <a
+        href="/warehouses"
+        class="bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl shadow-lg hover:-translate-y-2 transition-transform duration-300 overflow-hidden block"
       >
-        <h3 class="text-2xl font-bold text-white mb-3">📦 Warehouse Management</h3>
-        <p class="text-white/90">Track and manage your warehouses efficiently</p>
-      </div>
+        <img 
+          src="/images/ant_logistic2.jpg" 
+          alt="Warehouse Management" 
+          class="w-full h-48 object-cover"
+        />
+        <div class="p-8">
+          <h3 class="text-2xl font-bold text-white mb-3">🚚 Warehouse Management</h3>
+          <p class="text-white/90">Track and manage your warehouses efficiently</p>
+        </div>
+      </a>
 
       <div
         class="bg-gradient-to-br from-purple-600 to-purple-800 p-8 rounded-xl shadow-lg hover:-translate-y-2 transition-transform duration-300"
       >
-        <h3 class="text-2xl font-bold text-white mb-3">🚚 Commodity Tracking</h3>
+        <h3 class="text-2xl font-bold text-white mb-3">📦 Commodity Tracking</h3>
         <p class="text-white/90">Monitor commodities across all locations</p>
       </div>
 
