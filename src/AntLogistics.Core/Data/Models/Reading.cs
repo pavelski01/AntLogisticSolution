@@ -6,6 +6,8 @@ namespace AntLogistics.Core.Data.Models;
 /// </summary>
 public class Reading
 {
+    private string _sku = string.Empty;
+
     /// <summary>
     /// Gets or sets the unique identifier for the reading (auto-generated).
     /// </summary>
@@ -14,17 +16,21 @@ public class Reading
     /// <summary>
     /// Gets or sets the warehouse identifier (foreign key).
     /// </summary>
-    public int WarehouseId { get; set; }
+    public Guid WarehouseId { get; set; }
 
     /// <summary>
     /// Gets or sets the commodity identifier (foreign key).
     /// </summary>
-    public int CommodityId { get; set; }
+    public Guid CommodityId { get; set; }
 
     /// <summary>
     /// Gets or sets the SKU code (denormalized copy for audit trail).
     /// </summary>
-    public string Sku { get; set; } = string.Empty;
+    public string Sku
+    {
+        get => _sku;
+        set => _sku = (value ?? throw new ArgumentNullException(nameof(value))).ToLowerInvariant();
+    }
 
     /// <summary>
     /// Gets or sets the unit of measure at the time of reading.

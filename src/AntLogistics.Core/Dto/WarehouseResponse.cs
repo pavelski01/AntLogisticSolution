@@ -8,7 +8,7 @@ public record WarehouseResponse
     /// <summary>
     /// Gets the unique identifier for the warehouse.
     /// </summary>
-    public required int Id { get; init; }
+    public required Guid Id { get; init; }
 
     /// <summary>
     /// Gets the warehouse name.
@@ -21,9 +21,9 @@ public record WarehouseResponse
     public required string Code { get; init; }
 
     /// <summary>
-    /// Gets the warehouse address.
+    /// Gets the warehouse address line.
     /// </summary>
-    public required string Address { get; init; }
+    public required string AddressLine { get; init; }
 
     /// <summary>
     /// Gets the city where the warehouse is located.
@@ -31,14 +31,19 @@ public record WarehouseResponse
     public required string City { get; init; }
 
     /// <summary>
-    /// Gets the country where the warehouse is located.
+    /// Gets the country code where the warehouse is located.
     /// </summary>
-    public required string Country { get; init; }
+    public required string CountryCode { get; init; }
 
     /// <summary>
     /// Gets the postal code.
     /// </summary>
     public string? PostalCode { get; init; }
+
+    /// <summary>
+    /// Gets the default operating zone for the warehouse.
+    /// </summary>
+    public required string DefaultZone { get; init; }
 
     /// <summary>
     /// Gets the warehouse capacity in cubic meters.
@@ -56,12 +61,12 @@ public record WarehouseResponse
     public DateTime CreatedAt { get; init; }
 
     /// <summary>
-    /// Gets the date and time when the warehouse was last updated.
+    /// Gets the timestamp when the warehouse was deactivated.
     /// </summary>
-    public DateTime? UpdatedAt { get; init; }
+    public DateTime? DeactivatedAt { get; init; }
 
     /// <summary>
-    /// Gets the count of commodities stored in this warehouse.
+    /// Gets the date and time when the warehouse was last updated.
     /// </summary>
-    public int CommodityCount { get; init; }
+    public DateTime UpdatedAt { get; init; }
 }

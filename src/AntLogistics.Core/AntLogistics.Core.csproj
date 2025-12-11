@@ -19,7 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Migrations\" />
+    <Compile Update="Migrations\20251211000001_DbPlanInit.cs" />
+    <Compile Update="Migrations\AntLogisticsDbContextModelSnapshot.cs" />
   </ItemGroup>
 
 </Project>

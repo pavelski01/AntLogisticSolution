@@ -5,10 +5,22 @@ namespace AntLogistics.Core.Data.Models;
 /// </summary>
 public class Warehouse
 {
+    private string _code = string.Empty;
+    private string _countryCode = string.Empty;
+
     /// <summary>
     /// Gets or sets the unique identifier for the warehouse.
     /// </summary>
-    public int Id { get; set; }
+    public Guid Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the warehouse code - unique human-friendly identifier (max 50 characters, lowercase).
+    /// </summary>
+    public string Code
+    {
+        get => _code;
+        set => _code = (value ?? throw new ArgumentNullException(nameof(value))).ToLowerInvariant();
+    }
 
     /// <summary>
     /// Gets or sets the warehouse name (max 200 characters).
@@ -16,14 +28,9 @@ public class Warehouse
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the warehouse code - unique human-friendly identifier (max 50 characters, lowercase).
+    /// Gets or sets the warehouse street address (text field).
     /// </summary>
-    public string Code { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the warehouse street address (max 500 characters).
-    /// </summary>
-    public string Address { get; set; } = string.Empty;
+    public string AddressLine { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the city where the warehouse is located (max 100 characters).
@@ -31,9 +38,13 @@ public class Warehouse
     public string City { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the country code (ISO 3166-1 alpha-2, max 100 characters).
+    /// Gets or sets the country code (ISO 3166-1 alpha-2).
     /// </summary>
-    public string Country { get; set; } = string.Empty;
+    public string CountryCode
+    {
+        get => _countryCode;
+        set => _countryCode = (value ?? throw new ArgumentNullException(nameof(value))).ToUpperInvariant();
+    }
 
     /// <summary>
     /// Gets or sets the postal/zip code (max 20 characters, optional).
@@ -68,12 +79,7 @@ public class Warehouse
     /// <summary>
     /// Gets or sets the audit timestamp for last modification.
     /// </summary>
-    public DateTime? UpdatedAt { get; set; }
-
-    /// <summary>
-    /// Gets or sets the collection of commodities stored in this warehouse (1:N relationship).
-    /// </summary>
-    public ICollection<Commodity> Commodities { get; set; } = new List<Commodity>();
+    public DateTime UpdatedAt { get; set; }
 
     /// <summary>
     /// Gets or sets the collection of inventory readings for this warehouse (1:N relationship).

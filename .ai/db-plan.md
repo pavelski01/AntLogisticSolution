@@ -47,19 +47,6 @@
     | created_at | timestamptz | NOT NULL default now() | Audit |
     | updated_at | timestamptz | NOT NULL default now() | Audit |
 
-    #### `operator_sessions`
-    | Column | Type | Constraints | Description |
-    | --- | --- | --- | --- |
-    | id | uuid | PK, default gen_random_uuid() | Session row |
-    | operator_id | uuid | NOT NULL, FK -> operators(id) ON DELETE CASCADE | Owner |
-    | session_token | uuid | NOT NULL, unique | Server-issued token |
-    | issued_at | timestamptz | NOT NULL default now() | Creation time |
-    | last_seen_at | timestamptz | NOT NULL default now() | Sliding expiration checkpoint |
-    | expires_at | timestamptz | NOT NULL, check (expires_at > issued_at) | Absolute expiry |
-    | revoked_at | timestamptz | NULL | Manual revocation |
-    | client_ip | inet | NULL | IP for audit |
-    | user_agent | text | NULL | UA string |
-
     #### `readings`
     | Column | Type | Constraints | Description |
     | --- | --- | --- | --- |
@@ -82,15 +69,13 @@
 
 - `warehouses` 1:N `readings`; deleting a warehouse is blocked while dependent data exists.
 - `commodities` 1:N `readings`; commodities remain referenced even when inactive.
-- `operators` 1:N `operator_sessions` (cascade delete removes sessions) and 1:N `readings` (nullable FK to preserve history for removed operators).
-- `operator_sessions` links each active browser session to exactly one operator; sessions drive `current_setting('app.operator_id')` for RLS enforcement.
+- `operators` 1:N `readings` (nullable FK to preserve history for removed operators).
 
 3. **Indexes**
 
 - `warehouses`: unique index on `lower(code)`; partial index `idx_warehouses_active` on `(code)` where `is_active = true` to accelerate lookups; btree index on `(is_active, country_code)` for filtered listings.
 - `commodities`: unique index on `lower(sku)`; partial index on `(sku)` where `is_active = true`; gin index on `control_parameters` for JSON containment predicates.
 - `operators`: unique index on `lower(username)`; partial index on `(id)` where `is_active = true` to speed authentication checks.
-- `operator_sessions`: unique index on `session_token`; btree index on `(operator_id, expires_at)`; partial index where `revoked_at IS NULL` and `expires_at > now()` to purge expired sessions quickly.
 - `readings`: composite index `idx_readings_wh_time` on `(warehouse_id, occurred_at DESC)`; composite index on `(commodity_id, occurred_at DESC)`; hash index on `sku`; partial index `idx_readings_active_wh` on `(warehouse_id, commodity_id)` where `quantity > 0`; gin index on `metadata` for filtering by custom attributes.
 
 4. **PostgreSQL policies (RLS)**
@@ -133,18 +118,6 @@ CREATE POLICY readings_writer
     ON readings FOR INSERT TO api_writer
     WITH CHECK (is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id));
 
--- Operator sessions (operators can only touch their own rows)
-ALTER TABLE operator_sessions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY session_owner_select
-    ON operator_sessions FOR SELECT TO app_reader
-    USING (operator_id = current_setting('app.operator_id', true)::uuid);
-CREATE POLICY session_owner_update
-    ON operator_sessions FOR UPDATE TO app_reader
-    USING (operator_id = current_setting('app.operator_id', true)::uuid)
-    WITH CHECK (operator_id = current_setting('app.operator_id', true)::uuid);
-CREATE POLICY session_admin_all
-    ON operator_sessions FOR ALL TO api_writer
-    USING (true) WITH CHECK (true);
 ```
 
 _Helper functions `is_active_warehouse(uuid)` and `is_active_commodity(uuid)` return true when the referenced row exists with `is_active = true`; they are implemented as stable SQL functions to keep policies readable._

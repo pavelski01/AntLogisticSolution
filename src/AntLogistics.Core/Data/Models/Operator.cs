@@ -5,6 +5,8 @@ namespace AntLogistics.Core.Data.Models;
 /// </summary>
 public class Operator
 {
+    private string _username = string.Empty;
+
     /// <summary>
     /// Gets or sets the unique identifier for the operator.
     /// </summary>
@@ -13,7 +15,11 @@ public class Operator
     /// <summary>
     /// Gets or sets the username for login.
     /// </summary>
-    public string Username { get; set; } = string.Empty;
+    public string Username
+    {
+        get => _username;
+        set => _username = (value ?? throw new ArgumentNullException(nameof(value))).ToLowerInvariant();
+    }
 
     /// <summary>
     /// Gets or sets the password hash (Bcrypt).
@@ -53,12 +59,7 @@ public class Operator
     /// <summary>
     /// Gets or sets the last update timestamp.
     /// </summary>
-    public DateTime? UpdatedAt { get; set; }
-
-    /// <summary>
-    /// Gets or sets the collection of sessions for this operator.
-    /// </summary>
-    public ICollection<OperatorSession> Sessions { get; set; } = new List<OperatorSession>();
+    public DateTime UpdatedAt { get; set; }
 
     /// <summary>
     /// Gets or sets the collection of readings created by this operator.

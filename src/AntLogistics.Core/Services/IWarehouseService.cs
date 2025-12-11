@@ -21,7 +21,7 @@ public interface IWarehouseService
     /// <param name="id">The warehouse identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The warehouse if found; otherwise, null.</returns>
-    Task<WarehouseResponse?> GetWarehouseByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<WarehouseResponse?> GetWarehouseByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all warehouses.

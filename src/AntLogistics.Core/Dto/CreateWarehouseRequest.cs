@@ -16,9 +16,9 @@ public record CreateWarehouseRequest
     public required string Code { get; init; }
 
     /// <summary>
-    /// Gets the warehouse address.
+    /// Gets the warehouse address line.
     /// </summary>
-    public required string Address { get; init; }
+    public required string AddressLine { get; init; }
 
     /// <summary>
     /// Gets the city where the warehouse is located.
@@ -26,9 +26,9 @@ public record CreateWarehouseRequest
     public required string City { get; init; }
 
     /// <summary>
-    /// Gets the country where the warehouse is located.
+    /// Gets the country code (ISO 3166-1 alpha-2).
     /// </summary>
-    public required string Country { get; init; }
+    public required string CountryCode { get; init; }
 
     /// <summary>
     /// Gets the postal code.
@@ -36,7 +36,12 @@ public record CreateWarehouseRequest
     public string? PostalCode { get; init; }
 
     /// <summary>
-    /// Gets the warehouse capacity in cubic meters.
+    /// Gets the default operating zone for the warehouse.
+    /// </summary>
+    public string DefaultZone { get; init; } = "DEFAULT";
+
+    /// <summary>
+    /// Gets the warehouse capacity.
     /// </summary>
     public decimal Capacity { get; init; }
 

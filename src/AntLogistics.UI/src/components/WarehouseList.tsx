@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
 
 interface Warehouse {
-  id: number;
+  id: string;
   code: string;
   name: string;
-  address: string;
+  addressLine: string;
   city: string;
-  state: string;
-  zipCode: string;
-  country: string;
+  countryCode: string;
+  postalCode: string | null;
+  defaultZone: string;
   capacity: number;
   isActive: boolean;
+  deactivatedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -90,13 +91,18 @@ export default function WarehouseList() {
             </span>
           </div>
           <p className="text-gray-300 mb-2">
-            <strong>Address:</strong> {warehouse.address}
+            <strong>Address:</strong> {warehouse.addressLine}
           </p>
           <p className="text-gray-300 mb-2">
-            <strong>City:</strong> {warehouse.city}, {warehouse.state} {warehouse.zipCode}
+            <strong>Location:</strong> {warehouse.city}, {warehouse.countryCode}
+            {warehouse.postalCode ? ` ${warehouse.postalCode}` : ""}
           </p>
           <p className="text-gray-300 mb-2">
-            <strong>Country:</strong> {warehouse.country}
+            <strong>Default Zone:</strong> {warehouse.defaultZone}
+          </p>
+          <p className="text-gray-300 mb-2">
+            <strong>Status:</strong> {warehouse.isActive ? "Active" : "Inactive"}
+            {!warehouse.isActive && warehouse.deactivatedAt ? ` since ${new Date(warehouse.deactivatedAt).toLocaleDateString()}` : ""}
           </p>
           <p className="text-gray-300">
             <strong>Capacity:</strong> {warehouse.capacity.toLocaleString()} units

@@ -29,10 +29,23 @@ public class WarehouseService : IWarehouseService
     {
         _logger.LogInformation("Creating warehouse with code {Code}", request.Code);
 
-        // Check if warehouse with the same code already exists
+        var normalizedCode = request.Code.ToLowerInvariant();
+
+        if (request.Capacity <= 0)
+        {
+            _logger.LogWarning("Capacity {Capacity} is invalid for warehouse code {Code}", request.Capacity, request.Code);
+            throw new InvalidOperationException("Warehouse capacity must be greater than zero.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.CountryCode) || request.CountryCode.Length != 2)
+        {
+            _logger.LogWarning("Invalid country code {CountryCode} supplied for warehouse code {Code}", request.CountryCode, request.Code);
+            throw new InvalidOperationException("Country code must be a two-letter ISO 3166-1 alpha-2 value.");
+        }
+
         var existingWarehouse = await _context.Warehouses
             .AsNoTracking()
-            .FirstOrDefaultAsync(w => w.Code == request.Code, cancellationToken);
+            .FirstOrDefaultAsync(w => w.Code == normalizedCode, cancellationToken);
 
         if (existingWarehouse is not null)
         {
@@ -43,11 +56,12 @@ public class WarehouseService : IWarehouseService
         var warehouse = new Warehouse
         {
             Name = request.Name,
-            Code = request.Code,
-            Address = request.Address,
+            Code = normalizedCode,
+            AddressLine = request.AddressLine,
             City = request.City,
-            Country = request.Country,
+            CountryCode = request.CountryCode,
             PostalCode = request.PostalCode,
+            DefaultZone = string.IsNullOrWhiteSpace(request.DefaultZone) ? "DEFAULT" : request.DefaultZone,
             Capacity = request.Capacity,
             IsActive = request.IsActive
         };
@@ -61,13 +75,12 @@ public class WarehouseService : IWarehouseService
     }
 
     /// <inheritdoc/>
-    public async Task<WarehouseResponse?> GetWarehouseByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<WarehouseResponse?> GetWarehouseByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving warehouse with ID {WarehouseId}", id);
 
         var warehouse = await _context.Warehouses
             .AsNoTracking()
-            .Include(w => w.Commodities)
             .FirstOrDefaultAsync(w => w.Id == id, cancellationToken);
 
         if (warehouse is null)
@@ -85,15 +98,16 @@ public class WarehouseService : IWarehouseService
         _logger.LogInformation("Retrieving all warehouses (includeInactive: {IncludeInactive})", includeInactive);
 
         IQueryable<Warehouse> query = _context.Warehouses
-            .AsNoTracking()
-            .Include(w => w.Commodities);
+            .AsNoTracking();
 
         if (!includeInactive)
         {
             query = query.Where(w => w.IsActive);
         }
 
-        var warehouses = await query.ToListAsync(cancellationToken);
+        var warehouses = await query
+            .OrderBy(w => w.Name)
+            .ToListAsync(cancellationToken);
 
         _logger.LogInformation("Retrieved {Count} warehouses", warehouses.Count);
 
@@ -105,10 +119,17 @@ public class WarehouseService : IWarehouseService
     {
         _logger.LogInformation("Retrieving warehouse with code {Code}", code);
 
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            _logger.LogWarning("Warehouse code was not provided");
+            return null;
+        }
+
+        var normalizedCode = code.ToLowerInvariant();
+
         var warehouse = await _context.Warehouses
             .AsNoTracking()
-            .Include(w => w.Commodities)
-            .FirstOrDefaultAsync(w => w.Code == code, cancellationToken);
+            .FirstOrDefaultAsync(w => w.Code == normalizedCode, cancellationToken);
 
         if (warehouse is null)
         {
@@ -131,15 +152,16 @@ public class WarehouseService : IWarehouseService
             Id = warehouse.Id,
             Name = warehouse.Name,
             Code = warehouse.Code,
-            Address = warehouse.Address,
+            AddressLine = warehouse.AddressLine,
             City = warehouse.City,
-            Country = warehouse.Country,
+            CountryCode = warehouse.CountryCode,
             PostalCode = warehouse.PostalCode,
+            DefaultZone = warehouse.DefaultZone,
             Capacity = warehouse.Capacity,
             IsActive = warehouse.IsActive,
+            DeactivatedAt = warehouse.DeactivatedAt,
             CreatedAt = warehouse.CreatedAt,
-            UpdatedAt = warehouse.UpdatedAt,
-            CommodityCount = warehouse.Commodities.Count
+            UpdatedAt = warehouse.UpdatedAt
         };
     }
 }

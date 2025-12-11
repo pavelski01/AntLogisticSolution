@@ -111,13 +111,14 @@ app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWareho
 .ProducesProblem(StatusCodes.Status400BadRequest)
 .ProducesProblem(StatusCodes.Status500InternalServerError);
 
-app.MapGet("/api/v1/warehouses/{id:int}", async (int id, IWarehouseService service, CancellationToken cancellationToken) =>
+app.MapGet("/api/v1/warehouses/{id:guid}", async (Guid id, IWarehouseService service, CancellationToken cancellationToken) =>
 {
     var warehouse = await service.GetWarehouseByIdAsync(id, cancellationToken);
-    return Results.Ok(warehouse);
+    return warehouse is not null ? Results.Ok(warehouse) : Results.NotFound();
 })
 .WithName("GetWarehouseById")
-.Produces<WarehouseResponse?>(StatusCodes.Status200OK);
+.Produces<WarehouseResponse>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status404NotFound);
 
 app.MapGet("/api/v1/warehouses", async (bool includeInactive, IWarehouseService service, CancellationToken cancellationToken) =>
 {
@@ -130,9 +131,10 @@ app.MapGet("/api/v1/warehouses", async (bool includeInactive, IWarehouseService 
 app.MapGet("/api/v1/warehouses/by-code/{code}", async (string code, IWarehouseService service, CancellationToken cancellationToken) =>
 {
     var warehouse = await service.GetWarehouseByCodeAsync(code, cancellationToken);
-    return Results.Ok(warehouse);
+    return warehouse is not null ? Results.Ok(warehouse) : Results.NotFound();
 })
 .WithName("GetWarehouseByCode")
-.Produces<WarehouseResponse?>(StatusCodes.Status200OK);
+.Produces<WarehouseResponse>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status404NotFound);
 
 app.Run();
