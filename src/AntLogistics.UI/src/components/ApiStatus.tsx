@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react';
 
-interface PingResponse {
-  message: string;
-}
-
 export default function ApiStatus() {
   const [status, setStatus] = useState<string>('Checking...');
   const [isOnline, setIsOnline] = useState<boolean>(false);
@@ -12,11 +8,10 @@ export default function ApiStatus() {
   useEffect(() => {
     const checkApi = async () => {
       try {
-        const response = await fetch('/api/v1/ping');
+        const response = await fetch('/health');
         
         if (response.ok) {
-          const data: PingResponse = await response.json();
-          setStatus(data.message);
+          setStatus('API is healthy');
           setIsOnline(true);
         } else {
           setStatus(`API returned status ${response.status}`);
@@ -25,7 +20,7 @@ export default function ApiStatus() {
       } catch (error) {
         setStatus('Unable to reach API');
         setIsOnline(false);
-        console.error('API ping error:', error);
+        console.error('API health check error:', error);
       } finally {
         setIsLoading(false);
       }

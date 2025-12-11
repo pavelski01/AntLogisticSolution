@@ -5,13 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add ServiceDefaults for Aspire integration
 builder.AddServiceDefaults();
 
-// Add services to the container
 builder.Services.AddOpenApi();
 
-// Add CORS for development
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -22,18 +19,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configure PostgreSQL database context
 builder.Services.AddDbContext<AntLogisticsDbContext>(options =>
 {
-    // Connection string will be provided by Aspire orchestration
-    // or fall back to configuration for standalone running
     var connectionString = builder.Configuration.GetConnectionString("antlogistics")
         ?? builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string not found.");
 
     options.UseNpgsql(connectionString);
 
-    // Enable detailed errors and sensitive data logging in development
     if (builder.Environment.IsDevelopment())
     {
         options.EnableSensitiveDataLogging();
@@ -41,12 +34,10 @@ builder.Services.AddDbContext<AntLogisticsDbContext>(options =>
     }
 });
 
-// Register business services
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 
 var app = builder.Build();
 
-// Apply migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -67,26 +58,16 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseCors(); // Enable CORS in development
+    app.UseCors();
 }
 
 app.UseHttpsRedirection();
 
-// Map default endpoints (health checks, etc.)
 app.MapDefaultEndpoints();
 
-// Ping endpoint
-app.MapGet("/api/v1/ping", () =>
-{
-    return Results.Ok(new { message = "Pong! AntLogistics.Core API is running." });
-})
-.WithName("Ping");
-
-// Warehouse endpoints
 app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWarehouseService service, CancellationToken cancellationToken) =>
 {
     try

@@ -22,6 +22,11 @@ export default defineConfig({
           changeOrigin: true,
           secure: false,
         },
+        "/health": {
+          target: process.env.services__core__http__0 || process.env.services__core__https__0 || "http://localhost:5000",
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
   },

@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:5000
+@apiVersion = v1
+
+### OpenAPI/Swagger Endpoint
+GET {{baseUrl}}/openapi/v1.json
+
+### Health
+GET {{baseUrl}}/health
+
+### Create Warehouse
+POST {{baseUrl}}/api/{{apiVersion}}/warehouses
+Content-Type: application/json
+{
+  "code": "wh-001",
+  "name": "Main Warehouse",
+  "addressLine": "123 Industrial Blvd",
+  "city": "Chicago",
+  "countryCode": "US",
+  "postalCode": "60601",
+  "defaultZone": "DEFAULT",
+  "capacity": 10000.00
+}
+
+### Get All Warehouses (active only)
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses?includeInactive=false
+
+### Get All Warehouses (including inactive)
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses?includeInactive=true
+
+### Get Warehouse By ID
+# @name getWarehouse
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses/00000000-0000-0000-0000-000000000000
+
+### Get Warehouse By Code
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses/by-code/wh-001
+
+### Get Warehouse By Code (case insensitive)
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses/by-code/WH-001
+
+### Get Warehouse By Code (not found)
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses/by-code/non-existent
