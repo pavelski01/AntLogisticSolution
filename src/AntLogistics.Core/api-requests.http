@@ -21,21 +21,32 @@ Content-Type: application/json
   "capacity": 10000.00
 }
 
-### Get All Warehouses (active only)
-GET {{baseUrl}}/api/{{apiVersion}}/warehouses?includeInactive=false
-
-### Get All Warehouses (including inactive)
+### Get All Warehouses
 GET {{baseUrl}}/api/{{apiVersion}}/warehouses?includeInactive=true
 
 ### Get Warehouse By ID
-# @name getWarehouse
 GET {{baseUrl}}/api/{{apiVersion}}/warehouses/00000000-0000-0000-0000-000000000000
 
 ### Get Warehouse By Code
 GET {{baseUrl}}/api/{{apiVersion}}/warehouses/by-code/wh-001
 
-### Get Warehouse By Code (case insensitive)
-GET {{baseUrl}}/api/{{apiVersion}}/warehouses/by-code/WH-001
+### Create Commodity
+POST {{baseUrl}}/api/{{apiVersion}}/commodities
+Content-Type: application/json
+{
+  "sku": "prod-001",
+  "name": "Industrial Widget",
+  "unitOfMeasure": "pcs",
+  "batchRequired": true,
+  "controlParameters": "{\"temperature\": {\"min\": 5, \"max\": 25}}",
+  "isActive": true
+}
 
-### Get Warehouse By Code (not found)
-GET {{baseUrl}}/api/{{apiVersion}}/warehouses/by-code/non-existent
+### Get All Commodities
+GET {{baseUrl}}/api/{{apiVersion}}/commodities?includeInactive=false
+
+### Get Commodity By ID
+GET {{baseUrl}}/api/{{apiVersion}}/commodities/00000000-0000-0000-0000-000000000000
+
+### Get Commodity By SKU
+GET {{baseUrl}}/api/{{apiVersion}}/commodities/by-sku/prod-001

@@ -35,6 +35,7 @@ builder.Services.AddDbContext<AntLogisticsDbContext>(options =>
 });
 
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+builder.Services.AddScoped<ICommodityService, CommodityService>();
 
 var app = builder.Build();
 
@@ -116,6 +117,56 @@ app.MapGet("/api/v1/warehouses/by-code/{code}", async (string code, IWarehouseSe
 })
 .WithName("GetWarehouseByCode")
 .Produces<WarehouseResponse>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status404NotFound);
+
+app.MapPost("/api/v1/commodities", async (CreateCommodityRequest request, ICommodityService service, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var commodity = await service.CreateCommodityAsync(request, cancellationToken);
+        return Results.Created($"/api/v1/commodities/{commodity.Id}", commodity);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: StatusCodes.Status500InternalServerError,
+            title: "An error occurred while creating the commodity");
+    }
+})
+.WithName("CreateCommodity")
+.Produces<CommodityResponse>(StatusCodes.Status201Created)
+.ProducesProblem(StatusCodes.Status400BadRequest)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapGet("/api/v1/commodities/{id:guid}", async (Guid id, ICommodityService service, CancellationToken cancellationToken) =>
+{
+    var commodity = await service.GetCommodityByIdAsync(id, cancellationToken);
+    return commodity is not null ? Results.Ok(commodity) : Results.NotFound();
+})
+.WithName("GetCommodityById")
+.Produces<CommodityResponse>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status404NotFound);
+
+app.MapGet("/api/v1/commodities", async (bool includeInactive, ICommodityService service, CancellationToken cancellationToken) =>
+{
+    var commodities = await service.GetAllCommoditiesAsync(includeInactive, cancellationToken);
+    return Results.Ok(commodities);
+})
+.WithName("GetAllCommodities")
+.Produces<IEnumerable<CommodityResponse>>(StatusCodes.Status200OK);
+
+app.MapGet("/api/v1/commodities/by-sku/{sku}", async (string sku, ICommodityService service, CancellationToken cancellationToken) =>
+{
+    var commodity = await service.GetCommodityBySkuAsync(sku, cancellationToken);
+    return commodity is not null ? Results.Ok(commodity) : Results.NotFound();
+})
+.WithName("GetCommodityBySku")
+.Produces<CommodityResponse>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status404NotFound);
 
 app.Run();
