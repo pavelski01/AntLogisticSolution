@@ -12,17 +12,10 @@ var core = builder
     .WaitFor(database);
 
 var ui = builder
-    .AddProject<Projects.AntLogistics_UI>("ui")
-    .WithExternalHttpEndpoints()
-    .WithReference(core)
-    .WaitFor(core);
-
-builder
-    .AddNpmApp("astro-dev", "../AntLogistics.UI/ClientApp", "dev")
+    .AddNpmApp("ui", "../AntLogistics.UI", "dev")
     .WithReference(core)
     .WaitFor(core)
     .WithHttpEndpoint(targetPort: 4321, isProxied: false)
-    .WithExternalHttpEndpoints()
-    .WithParentRelationship(ui);
+    .WithExternalHttpEndpoints();
 
 builder.Build().Run();

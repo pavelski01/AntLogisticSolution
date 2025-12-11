@@ -13,11 +13,11 @@ Warehouse management system (WMS) built with .NET 10 and Aspire 13.0. Architectu
 ```powershell
 dotnet run --project src/AntLogistics.AppHost
 ```
-This starts the entire stack: PostgreSQL, Core API, UI proxy, and Astro dev server (when run with `--use-astro-dev` flag).
+This starts the entire stack: PostgreSQL, Core API, and Astro dev server.
 
 **Frontend-only development**:
 ```powershell
-cd src/AntLogistics.UI/ClientApp
+cd src/AntLogistics.UI
 npm run dev  # Astro dev server on port 4321
 ```
 
@@ -31,9 +31,8 @@ dotnet ef database update
 ## Architecture Patterns
 
 ### Service Communication
-- **Aspire service discovery**: UI proxy uses `https+http://core` URI scheme (see `ServiceCollectionExtensions.cs`)
-- **Astro dev server proxy**: Configured in `astro.config.mjs` to proxy `/api` requests to Core API using environment variables `services__core__http__0`
-- **UI middleware chain**: Static files → Astro dev proxy → API proxy → SPA fallback (see `ApplicationBuilderExtensions.cs`)
+- **Aspire service discovery**: Astro dev server proxies `/api` requests to Core API using Aspire-injected environment variables `services__core__http__0`
+- **Vite proxy configuration**: Configured in `astro.config.mjs` to handle API requests during development
 
 ### Project Structure (Actual)
 ```
@@ -44,8 +43,7 @@ src/
 │   ├── Data/Models/               # Domain entities (Warehouse, Commodity, etc.)
 │   ├── Dto/                       # Request/response DTOs
 │   └── Services/                  # Business logic (interface + implementation)
-└── AntLogistics.UI/               # ASP.NET Core proxy host
-    └── ClientApp/                 # Astro + React frontend (TypeScript, Tailwind v4)
+└── AntLogistics.UI/               # Astro + React frontend (TypeScript, Tailwind v4)
 ```
 
 ### Key Technical Details
@@ -93,10 +91,7 @@ app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWareho
 
 ### Extension Method Conventions
 Custom extensions in `Extensions/` folders:
-- `AddServiceDefaults()` - Aspire integration (OpenTelemetry, health, resilience)
-- `AddCoreApiClient()` - Registers HttpClient for Core API with service discovery
-- `MapCoreApiProxy()` - Proxies `/api/{**path}` to Core service
-- `UseAstroDevServerProxy()` - Conditional proxy to Astro dev server (dev only)
+- `AddServiceDefaults()` - Aspire integration (OpenTelemetry, health, resilience) used in Core API
 
 ## Configuration & Environment
 
@@ -106,9 +101,9 @@ Custom extensions in `Extensions/` folders:
 ```csharp
 var database = builder.AddPostgres("postgres").WithPgAdmin().AddDatabase("antlogistics");
 var core = builder.AddProject<Projects.AntLogistics_Core>("core").WithReference(database);
-var ui = builder.AddProject<Projects.AntLogistics_UI>("ui").WithReference(core);
-builder.AddNpmApp("astro-dev", "../AntLogistics.UI/ClientApp", "dev")
-    .WithReference(core).WithParentRelationship(ui);
+var ui = builder.AddNpmApp("ui", "../AntLogistics.UI", "dev")
+    .WithReference(core).WithHttpEndpoint(targetPort: 4321, isProxied: false)
+    .WithExternalHttpEndpoints();
 ```
 
 **Startup behavior**:

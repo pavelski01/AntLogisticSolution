@@ -10,5 +10,4 @@
   <Project Path="src/AntLogistics.AppHost/AntLogistics.AppHost.csproj" />
   <Project Path="src/AntLogistics.Core/AntLogistics.Core.csproj" />
   <Project Path="src/AntLogistics.ServiceDefaults/AntLogistics.ServiceDefaults.csproj" />
-  <Project Path="src/AntLogistics.UI/AntLogistics.UI.csproj" />
 </Solution>
