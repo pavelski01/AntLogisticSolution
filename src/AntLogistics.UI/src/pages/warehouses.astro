@@ -13,7 +13,12 @@ import WarehouseList from "@/components/WarehouseList";
           class="w-full h-full object-contain"
         />
       </div>
-      <h1 class="text-4xl font-bold">Warehouses</h1>
+      <div class="flex items-center justify-between gap-4">
+        <h1 class="text-4xl font-bold">Warehouses</h1>
+        <a href="/warehouses/newWarehouse" class="inline-flex items-center rounded-lg bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 font-medium transition-colors">
+          New warehouse
+        </a>
+      </div>
     </div>
     <WarehouseList client:load />
   </div>
