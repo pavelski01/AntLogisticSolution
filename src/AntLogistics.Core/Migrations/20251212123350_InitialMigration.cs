@@ -12,6 +12,9 @@ namespace AntLogistics.Core.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Ensure required extension for gen_random_uuid and crypt
+            migrationBuilder.Sql("CREATE EXTENSION IF NOT EXISTS pgcrypto;");
+
             migrationBuilder.CreateTable(
                 name: "commodities",
                 columns: table => new
@@ -193,6 +196,15 @@ namespace AntLogistics.Core.Migrations
                 name: "idx_warehouses_active_country",
                 table: "warehouses",
                 columns: new[] { "is_active", "country_code" });
+
+            // Seed initial operators (admin/operator) with bcrypt hashes generated via pgcrypto
+            migrationBuilder.Sql(@"
+                INSERT INTO operators (username, password_hash, full_name, role, is_active, idle_timeout_minutes)
+                VALUES
+                    ('admin', crypt('admin', gen_salt('bf', 10)), 'Administrator', 'admin', true, 30),
+                    ('operator', crypt('operator', gen_salt('bf', 10)), 'Operator', 'operator', true, 30)
+                ON CONFLICT (username) DO NOTHING;
+            ");
         }
 
         /// <inheritdoc />

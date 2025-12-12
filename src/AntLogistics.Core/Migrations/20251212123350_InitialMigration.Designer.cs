@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AntLogistics.Core.Migrations
 {
     [DbContext(typeof(AntLogisticsDbContext))]
-    [Migration("20251212001219_InitialMigration")]
+    [Migration("20251212123350_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
