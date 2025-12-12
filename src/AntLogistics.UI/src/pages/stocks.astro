@@ -13,7 +13,12 @@ import StockList from "@/components/StockList";
           class="w-full h-full object-contain"
         />
       </div>
-      <h1 class="text-4xl font-bold">Stock</h1>
+      <div class="flex items-center justify-between gap-4">
+        <h1 class="text-4xl font-bold">Stock</h1>
+        <a href="/stocks/newStock" class="inline-flex items-center rounded-lg bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 font-medium transition-colors">
+          New stock
+        </a>
+      </div>
     </div>
     <StockList client:load />
   </div>
