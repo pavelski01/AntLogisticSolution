@@ -1,0 +1,88 @@
+@baseUrl = http://localhost:5000
+@apiVersion = v1
+
+### OpenAPI/Swagger Endpoint
+GET {{baseUrl}}/openapi/v1.json
+
+### Health
+GET {{baseUrl}}/health
+
+### Create Warehouse
+POST {{baseUrl}}/api/{{apiVersion}}/warehouses
+Content-Type: application/json
+{
+  "code": "wh-001",
+  "name": "Main Warehouse",
+  "addressLine": "123 Industrial Blvd",
+  "city": "Chicago",
+  "countryCode": "US",
+  "postalCode": "60601",
+  "defaultZone": "DEFAULT",
+  "capacity": 10000.00
+}
+
+### Get All Warehouses
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses?includeInactive=true
+
+### Get Warehouse By ID
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses/00000000-0000-0000-0000-000000000000
+
+### Get Warehouse By Code
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses/by-code/wh-001
+
+### Create Commodity
+POST {{baseUrl}}/api/{{apiVersion}}/commodities
+Content-Type: application/json
+{
+  "sku": "prod-001",
+  "name": "Industrial Widget",
+  "unitOfMeasure": "pcs",
+  "controlParameters": "{\"temperature\": {\"min\": 5, \"max\": 25}}",
+  "isActive": true
+}
+
+### Get All Commodities
+GET {{baseUrl}}/api/{{apiVersion}}/commodities?includeInactive=false
+
+### Get Commodity By ID
+GET {{baseUrl}}/api/{{apiVersion}}/commodities/00000000-0000-0000-0000-000000000000
+
+### Get Commodity By SKU
+GET {{baseUrl}}/api/{{apiVersion}}/commodities/by-sku/prod-001
+
+### Create Reading
+POST {{baseUrl}}/api/{{apiVersion}}/readings
+Content-Type: application/json
+{
+  "warehouseId": "00000000-0000-0000-0000-000000000000",
+  "commodityId": "00000000-0000-0000-0000-000000000000",
+  "quantity": 150.5,
+  "warehouseZone": "ZONE-A",
+  "createdBy": "John Doe",
+  "source": "manual",
+  "metadata": "{\"temperature\": 22.5, \"humidity\": 45}"
+}
+
+### Get All Readings
+GET {{baseUrl}}/api/{{apiVersion}}/readings?limit=50
+
+### Get All Readings with Filters
+GET {{baseUrl}}/api/{{apiVersion}}/readings?warehouseId=00000000-0000-0000-0000-000000000000&commodityId=00000000-0000-0000-0000-000000000000&limit=100
+
+### Get All Readings with Date Range
+GET {{baseUrl}}/api/{{apiVersion}}/readings?from=2025-12-01T00:00:00Z&to=2025-12-31T23:59:59Z&limit=200
+
+### Get Reading By ID
+GET {{baseUrl}}/api/{{apiVersion}}/readings/1
+
+### Get Readings by Warehouse
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses/00000000-0000-0000-0000-000000000000/readings?limit=50
+
+### Get Readings by Warehouse with Date Range
+GET {{baseUrl}}/api/{{apiVersion}}/warehouses/00000000-0000-0000-0000-000000000000/readings?from=2025-12-01T00:00:00Z&to=2025-12-31T23:59:59Z
+
+### Get Readings by Commodity
+GET {{baseUrl}}/api/{{apiVersion}}/commodities/00000000-0000-0000-0000-000000000000/readings?limit=50
+
+### Get Readings by Commodity with Date Range
+GET {{baseUrl}}/api/{{apiVersion}}/commodities/00000000-0000-0000-0000-000000000000/readings?from=2025-12-01T00:00:00Z&to=2025-12-31T23:59:59Z

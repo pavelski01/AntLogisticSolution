@@ -36,6 +36,7 @@ builder.Services.AddDbContext<AntLogisticsDbContext>(options =>
 
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<ICommodityService, CommodityService>();
+builder.Services.AddScoped<IReadingService, ReadingService>();
 
 var app = builder.Build();
 
@@ -168,5 +169,97 @@ app.MapGet("/api/v1/commodities/by-sku/{sku}", async (string sku, ICommodityServ
 .WithName("GetCommodityBySku")
 .Produces<CommodityResponse>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status404NotFound);
+
+app.MapPost("/api/v1/readings", async (CreateReadingRequest request, IReadingService service, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var reading = await service.CreateReadingAsync(request, cancellationToken);
+        return Results.Created($"/api/v1/readings/{reading.Id}", reading);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: StatusCodes.Status500InternalServerError,
+            title: "An error occurred while creating the reading");
+    }
+})
+.WithName("CreateReading")
+.Produces<ReadingResponse>(StatusCodes.Status201Created)
+.ProducesProblem(StatusCodes.Status400BadRequest)
+.ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapGet("/api/v1/readings/{id:long}", async (long id, IReadingService service, CancellationToken cancellationToken) =>
+{
+    var reading = await service.GetReadingByIdAsync(id, cancellationToken);
+    return reading is not null ? Results.Ok(reading) : Results.NotFound();
+})
+.WithName("GetReadingById")
+.Produces<ReadingResponse>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status404NotFound);
+
+app.MapGet("/api/v1/readings", async (
+    Guid? warehouseId,
+    Guid? commodityId,
+    DateTime? from,
+    DateTime? to,
+    int? limit,
+    IReadingService service,
+    CancellationToken cancellationToken) =>
+{
+    var readings = await service.GetReadingsAsync(
+        warehouseId,
+        commodityId,
+        from,
+        to,
+        limit ?? 100,
+        cancellationToken);
+    return Results.Ok(readings);
+})
+.WithName("GetReadings")
+.Produces<IEnumerable<ReadingResponse>>(StatusCodes.Status200OK);
+
+app.MapGet("/api/v1/warehouses/{warehouseId:guid}/readings", async (
+    Guid warehouseId,
+    DateTime? from,
+    DateTime? to,
+    int? limit,
+    IReadingService service,
+    CancellationToken cancellationToken) =>
+{
+    var readings = await service.GetReadingsByWarehouseAsync(
+        warehouseId,
+        from,
+        to,
+        limit ?? 100,
+        cancellationToken);
+    return Results.Ok(readings);
+})
+.WithName("GetReadingsByWarehouse")
+.Produces<IEnumerable<ReadingResponse>>(StatusCodes.Status200OK);
+
+app.MapGet("/api/v1/commodities/{commodityId:guid}/readings", async (
+    Guid commodityId,
+    DateTime? from,
+    DateTime? to,
+    int? limit,
+    IReadingService service,
+    CancellationToken cancellationToken) =>
+{
+    var readings = await service.GetReadingsByCommodityAsync(
+        commodityId,
+        from,
+        to,
+        limit ?? 100,
+        cancellationToken);
+    return Results.Ok(readings);
+})
+.WithName("GetReadingsByCommodity")
+.Produces<IEnumerable<ReadingResponse>>(StatusCodes.Status200OK);
 
 app.Run();
