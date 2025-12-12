@@ -1,9 +1,9 @@
 namespace AntLogistics.Core.Dto;
 
 /// <summary>
-/// Request DTO for creating a new reading.
+/// Request DTO for creating a new stock record.
 /// </summary>
-public record CreateReadingRequest
+public record CreateStockRequest
 {
     /// <summary>
     /// Gets or sets the warehouse identifier.
@@ -21,12 +21,12 @@ public record CreateReadingRequest
     public required decimal Quantity { get; init; }
 
     /// <summary>
-    /// Gets or sets the warehouse zone where the reading was taken (optional, defaults to warehouse's default zone).
+    /// Gets or sets the warehouse zone where the stock was recorded (optional, defaults to warehouse's default zone).
     /// </summary>
     public string? WarehouseZone { get; init; }
 
     /// <summary>
-    /// Gets or sets the operator identifier who created the reading (optional).
+    /// Gets or sets the operator identifier who created the stock record (optional).
     /// </summary>
     public Guid? OperatorId { get; init; }
 
@@ -36,12 +36,12 @@ public record CreateReadingRequest
     public string? CreatedBy { get; init; }
 
     /// <summary>
-    /// Gets or sets the source of the reading (optional, defaults to "manual").
+    /// Gets or sets the source of the stock record (optional, defaults to "manual").
     /// </summary>
     public string? Source { get; init; }
 
     /// <summary>
-    /// Gets or sets the timestamp when the reading occurred physically (optional, defaults to current time).
+    /// Gets or sets the timestamp when the stock was recorded physically (optional, defaults to current time).
     /// </summary>
     public DateTime? OccurredAt { get; init; }
 

@@ -62,7 +62,7 @@ public class Operator
     public DateTime UpdatedAt { get; set; }
 
     /// <summary>
-    /// Gets or sets the collection of readings created by this operator.
+    /// Gets or sets the collection of stock records created by this operator.
     /// </summary>
-    public ICollection<Reading> Readings { get; set; } = new List<Reading>();
+    public ICollection<Stock> Stocks { get; set; } = new List<Stock>();
 }

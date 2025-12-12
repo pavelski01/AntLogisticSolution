@@ -57,7 +57,7 @@ public class Commodity
     public DateTime UpdatedAt { get; set; }
 
     /// <summary>
-    /// Gets or sets the collection of inventory readings for this commodity (1:N relationship).
+    /// Gets or sets the collection of stock records for this commodity (1:N relationship).
     /// </summary>
-    public ICollection<Reading> Readings { get; set; } = new List<Reading>();
+    public ICollection<Stock> Stocks { get; set; } = new List<Stock>();
 }

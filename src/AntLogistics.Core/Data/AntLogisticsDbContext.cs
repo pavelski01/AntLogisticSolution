@@ -35,9 +35,9 @@ public class AntLogisticsDbContext : DbContext
     public DbSet<Operator> Operators { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the Readings DbSet.
+    /// Gets or sets the Stocks DbSet.
     /// </summary>
-    public DbSet<Reading> Readings { get; set; } = null!;
+    public DbSet<Stock> Stocks { get; set; } = null!;
 
     /// <summary>
     /// Configures the entity model and relationships.
@@ -256,9 +256,9 @@ public class AntLogisticsDbContext : DbContext
             entity.HasCheckConstraint("ck_operators_idle_timeout", "idle_timeout_minutes BETWEEN 5 AND 180");
         });
 
-        modelBuilder.Entity<Reading>(entity =>
+        modelBuilder.Entity<Stock>(entity =>
         {
-            entity.ToTable("readings");
+            entity.ToTable("stocks");
 
             entity.HasKey(e => e.Id);
 
@@ -320,37 +320,39 @@ public class AntLogisticsDbContext : DbContext
                 .HasDefaultValueSql("'{}'::jsonb");
 
             entity.HasOne(e => e.Warehouse)
-                .WithMany(w => w.Readings)
+                .WithMany(w => w.Stocks)
                 .HasForeignKey(e => e.WarehouseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(e => e.Commodity)
-                .WithMany(c => c.Readings)
+                .WithMany(c => c.Stocks)
                 .HasForeignKey(e => e.CommodityId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(e => e.Operator)
-                .WithMany(o => o.Readings)
+                .WithMany(o => o.Stocks)
                 .HasForeignKey(e => e.OperatorId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasIndex(e => new { e.WarehouseId, e.OccurredAt })
-                .HasDatabaseName("idx_readings_wh_time");
+                .HasDatabaseName("idx_stocks_wh_time");
 
             entity.HasIndex(e => new { e.CommodityId, e.OccurredAt })
-                .HasDatabaseName("idx_readings_commodity_time");
+                .HasDatabaseName("idx_stocks_commodity_time");
 
             entity.HasIndex(e => e.Sku)
-                .HasDatabaseName("idx_readings_sku")
+                .HasDatabaseName("idx_stocks_sku")
                 .HasMethod("hash");
 
             entity.HasIndex(e => new { e.WarehouseId, e.CommodityId })
-                .HasDatabaseName("idx_readings_active_wh")
+                .HasDatabaseName("idx_stocks_active_wh")
                 .HasFilter("quantity > 0");
 
             entity.HasIndex(e => e.Metadata)
-                .HasDatabaseName("idx_readings_metadata")
+                .HasDatabaseName("idx_stocks_metadata")
                 .HasMethod("gin");
+
+            entity.HasCheckConstraint("ck_stocks_quantity_positive", "quantity > 0");
         });
     }
 
@@ -389,8 +391,8 @@ public class AntLogisticsDbContext : DbContext
             },
             (entity, timestamp) => entity.UpdatedAt = timestamp);
 
-        var readingEntries = ChangeTracker.Entries<Reading>();
-        foreach (var entry in readingEntries)
+        var stockEntries = ChangeTracker.Entries<Stock>();
+        foreach (var entry in stockEntries)
         {
             if (entry.State == EntityState.Added)
             {

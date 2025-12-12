@@ -46,7 +46,7 @@
     | created_at | timestamptz | NOT NULL default now() | Audit |
     | updated_at | timestamptz | NOT NULL default now() | Audit |
 
-    #### `readings`
+    #### `stocks`
     | Column | Type | Constraints | Description |
     | --- | --- | --- | --- |
     | id | bigint | PK, generated always as identity | Append-only identifier |
@@ -54,9 +54,9 @@
     | commodity_id | uuid | NOT NULL, FK -> commodities(id) | Item |
     | sku | varchar(100) | NOT NULL | Denormalized SKU copy |
     | unit_of_measure | varchar(20) | NOT NULL | UOM at capture time |
-    | quantity | numeric(18,3) | NOT NULL, check (quantity > 0) | Captured quantity |
-    | warehouse_zone | varchar(100) | NOT NULL default 'DEFAULT' | Zone of the reading |
-    | operator_id | uuid | NULL, FK -> operators(id) ON DELETE SET NULL | Capturing operator |
+    | quantity | numeric(18,3) | NOT NULL, check (quantity > 0) | Stock quantity |
+    | warehouse_zone | varchar(100) | NOT NULL default 'DEFAULT' | Zone of the stock |
+    | operator_id | uuid | NULL, FK -> operators(id) ON DELETE SET NULL | Operator who recorded the stock |
     | created_by | text | NOT NULL | Immutable operator label |
     | source | varchar(50) | NOT NULL default 'manual' | Manual/API/import |
     | occurred_at | timestamptz | NOT NULL default now() | Physical event time |
@@ -65,16 +65,16 @@
 
 2. **Relationships between tables**
 
-- `warehouses` 1:N `readings`; deleting a warehouse is blocked while dependent data exists.
-- `commodities` 1:N `readings`; commodities remain referenced even when inactive.
-- `operators` 1:N `readings` (nullable FK to preserve history for removed operators).
+- `warehouses` 1:N `stocks`; deleting a warehouse is blocked while dependent data exists.
+- `commodities` 1:N `stocks`; commodities remain referenced even when inactive.
+- `operators` 1:N `stocks` (nullable FK to preserve history for removed operators).
 
 3. **Indexes**
 
 - `warehouses`: unique index on `lower(code)`; partial index `idx_warehouses_active` on `(code)` where `is_active = true` to accelerate lookups; btree index on `(is_active, country_code)` for filtered listings.
 - `commodities`: unique index on `lower(sku)`; partial index on `(sku)` where `is_active = true`; gin index on `control_parameters` for JSON containment predicates.
 - `operators`: unique index on `lower(username)`; partial index on `(id)` where `is_active = true` to speed authentication checks.
-- `readings`: composite index `idx_readings_wh_time` on `(warehouse_id, occurred_at DESC)`; composite index on `(commodity_id, occurred_at DESC)`; hash index on `sku`; partial index `idx_readings_active_wh` on `(warehouse_id, commodity_id)` where `quantity > 0`; gin index on `metadata` for filtering by custom attributes.
+- `stocks`: composite index `idx_stocks_wh_time` on `(warehouse_id, occurred_at DESC)`; composite index on `(commodity_id, occurred_at DESC)`; hash index on `sku`; partial index `idx_stocks_active_wh` on `(warehouse_id, commodity_id)` where `quantity > 0`; gin index on `metadata` for filtering by custom attributes.
 
 4. **PostgreSQL policies (RLS)**
 
@@ -101,10 +101,10 @@ CREATE POLICY commodity_writer
     ON commodities FOR ALL TO api_writer
     USING (true) WITH CHECK (true);
 
--- Readings (operators see only their active warehouse/item rows; API can see all)
-ALTER TABLE readings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY readings_operator_select
-    ON readings FOR SELECT TO app_reader
+-- Stocks (operators see only their active warehouse/item rows; API can see all)
+ALTER TABLE stocks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY stocks_operator_select
+    ON stocks FOR SELECT TO app_reader
     USING (
         (is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id))
         AND (
@@ -112,8 +112,8 @@ CREATE POLICY readings_operator_select
             OR current_setting('app.is_admin', true)::boolean
         )
     );
-CREATE POLICY readings_writer
-    ON readings FOR INSERT TO api_writer
+CREATE POLICY stocks_writer
+    ON stocks FOR INSERT TO api_writer
     WITH CHECK (is_active_warehouse(warehouse_id) AND is_active_commodity(commodity_id));
 
 ```
@@ -123,7 +123,7 @@ _Helper functions `is_active_warehouse(uuid)` and `is_active_commodity(uuid)` re
 5. **Additional notes**
 
 - `gen_random_uuid()` requires the `pgcrypto` extension; enable it in the migration bootstrap.
-- `readings` remains append-only via a `BEFORE UPDATE OR DELETE` trigger that raises an exception, ensuring auditability; corrections are handled by compensating entries.
+- `stocks` remains append-only via a `BEFORE UPDATE OR DELETE` trigger that raises an exception, ensuring auditability; corrections are handled by compensating entries.
 - Application services must set `SET LOCAL app.operator_id = '<uuid>';` and `SET LOCAL app.is_admin = 't'/'f';` per request so RLS policies can evaluate operator-level access.
 - `control_parameters` and `metadata` fields allow future validations (e.g., enforcing cold-chain range) without schema churn while still remaining queryable through GIN indexes.
-- Archiving strategy: monitor `readings` row count; when retention thresholds are exceeded, move the oldest rows to a `readings_history` table that shares the schema and inherits indexes/RLS policies.
+- Archiving strategy: monitor `stocks` row count; when retention thresholds are exceeded, move the oldest rows to a `stocks_history` table that shares the schema and inherits indexes/RLS policies.

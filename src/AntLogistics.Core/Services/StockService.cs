@@ -6,36 +6,36 @@ using Microsoft.EntityFrameworkCore;
 namespace AntLogistics.Core.Services;
 
 /// <summary>
-/// Service implementation for reading operations.
+/// Service implementation for stock operations.
 /// </summary>
-public class ReadingService : IReadingService
+public class StockService : IStockService
 {
     private readonly AntLogisticsDbContext _context;
-    private readonly ILogger<ReadingService> _logger;
+    private readonly ILogger<StockService> _logger;
     private const int MaxLimit = 1000;
     private const int DefaultLimit = 100;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReadingService"/> class.
+    /// Initializes a new instance of the <see cref="StockService"/> class.
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <param name="logger">The logger instance.</param>
-    public ReadingService(AntLogisticsDbContext context, ILogger<ReadingService> logger)
+    public StockService(AntLogisticsDbContext context, ILogger<StockService> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc/>
-    public async Task<ReadingResponse> CreateReadingAsync(CreateReadingRequest request, CancellationToken cancellationToken = default)
+    public async Task<StockResponse> CreateStockAsync(CreateStockRequest request, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Creating reading for warehouse {WarehouseId} and commodity {CommodityId}", 
+        _logger.LogInformation("Creating stock record for warehouse {WarehouseId} and commodity {CommodityId}", 
             request.WarehouseId, request.CommodityId);
 
         if (request.Quantity <= 0)
         {
-            _logger.LogWarning("Invalid quantity {Quantity} for reading", request.Quantity);
-            throw new InvalidOperationException("Reading quantity must be greater than zero.");
+            _logger.LogWarning("Invalid quantity {Quantity} for stock", request.Quantity);
+            throw new InvalidOperationException("Stock quantity must be greater than zero.");
         }
 
         var warehouse = await _context.Warehouses
@@ -71,7 +71,7 @@ public class ReadingService : IReadingService
             }
         }
 
-        var reading = new Reading
+        var stock = new Stock
         {
             WarehouseId = request.WarehouseId,
             CommodityId = request.CommodityId,
@@ -86,35 +86,35 @@ public class ReadingService : IReadingService
             Metadata = string.IsNullOrWhiteSpace(request.Metadata) ? "{}" : request.Metadata
         };
 
-        _context.Readings.Add(reading);
+        _context.Stocks.Add(stock);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Successfully created reading {ReadingId} for warehouse {WarehouseId}", 
-            reading.Id, reading.WarehouseId);
+        _logger.LogInformation("Successfully created stock record {StockId} for warehouse {WarehouseId}", 
+            stock.Id, stock.WarehouseId);
 
-        return MapToResponse(reading);
+        return MapToResponse(stock);
     }
 
     /// <inheritdoc/>
-    public async Task<ReadingResponse?> GetReadingByIdAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<StockResponse?> GetStockByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Retrieving reading with ID {ReadingId}", id);
+        _logger.LogInformation("Retrieving stock record with ID {StockId}", id);
 
-        var reading = await _context.Readings
+        var stock = await _context.Stocks
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
-        if (reading is null)
+        if (stock is null)
         {
-            _logger.LogInformation("Reading with ID {ReadingId} not found", id);
+            _logger.LogInformation("Stock record with ID {StockId} not found", id);
             return null;
         }
 
-        return MapToResponse(reading);
+        return MapToResponse(stock);
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<ReadingResponse>> GetReadingsAsync(
+    public async Task<IEnumerable<StockResponse>> GetStocksAsync(
         Guid? warehouseId = null,
         Guid? commodityId = null,
         DateTime? from = null,
@@ -122,12 +122,12 @@ public class ReadingService : IReadingService
         int limit = DefaultLimit,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Retrieving readings with filters: WarehouseId={WarehouseId}, CommodityId={CommodityId}, From={From}, To={To}, Limit={Limit}",
+        _logger.LogInformation("Retrieving stock records with filters: WarehouseId={WarehouseId}, CommodityId={CommodityId}, From={From}, To={To}, Limit={Limit}",
             warehouseId, commodityId, from, to, limit);
 
         var effectiveLimit = Math.Min(limit > 0 ? limit : DefaultLimit, MaxLimit);
 
-        IQueryable<Reading> query = _context.Readings.AsNoTracking();
+        IQueryable<Stock> query = _context.Stocks.AsNoTracking();
 
         if (warehouseId.HasValue)
         {
@@ -149,60 +149,60 @@ public class ReadingService : IReadingService
             query = query.Where(r => r.OccurredAt <= to.Value);
         }
 
-        var readings = await query
+        var stocks = await query
             .OrderByDescending(r => r.OccurredAt)
             .Take(effectiveLimit)
             .ToListAsync(cancellationToken);
 
-        _logger.LogInformation("Retrieved {Count} readings", readings.Count);
+        _logger.LogInformation("Retrieved {Count} stock records", stocks.Count);
 
-        return readings.Select(MapToResponse);
+        return stocks.Select(MapToResponse);
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<ReadingResponse>> GetReadingsByWarehouseAsync(
+    public async Task<IEnumerable<StockResponse>> GetStocksByWarehouseAsync(
         Guid warehouseId,
         DateTime? from = null,
         DateTime? to = null,
         int limit = DefaultLimit,
         CancellationToken cancellationToken = default)
     {
-        return await GetReadingsAsync(warehouseId, null, from, to, limit, cancellationToken);
+        return await GetStocksAsync(warehouseId, null, from, to, limit, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<ReadingResponse>> GetReadingsByCommodityAsync(
+    public async Task<IEnumerable<StockResponse>> GetStocksByCommodityAsync(
         Guid commodityId,
         DateTime? from = null,
         DateTime? to = null,
         int limit = DefaultLimit,
         CancellationToken cancellationToken = default)
     {
-        return await GetReadingsAsync(null, commodityId, from, to, limit, cancellationToken);
+        return await GetStocksAsync(null, commodityId, from, to, limit, cancellationToken);
     }
 
     /// <summary>
-    /// Maps a Reading entity to a ReadingResponse DTO.
+    /// Maps a Stock entity to a StockResponse DTO.
     /// </summary>
-    /// <param name="reading">The reading entity.</param>
-    /// <returns>The reading response DTO.</returns>
-    private static ReadingResponse MapToResponse(Reading reading)
+    /// <param name="stock">The stock entity.</param>
+    /// <returns>The stock response DTO.</returns>
+    private static StockResponse MapToResponse(Stock stock)
     {
-        return new ReadingResponse
+        return new StockResponse
         {
-            Id = reading.Id,
-            WarehouseId = reading.WarehouseId,
-            CommodityId = reading.CommodityId,
-            Sku = reading.Sku,
-            UnitOfMeasure = reading.UnitOfMeasure,
-            Quantity = reading.Quantity,
-            WarehouseZone = reading.WarehouseZone,
-            OperatorId = reading.OperatorId,
-            CreatedBy = reading.CreatedBy,
-            Source = reading.Source,
-            OccurredAt = reading.OccurredAt,
-            CreatedAt = reading.CreatedAt,
-            Metadata = reading.Metadata
+            Id = stock.Id,
+            WarehouseId = stock.WarehouseId,
+            CommodityId = stock.CommodityId,
+            Sku = stock.Sku,
+            UnitOfMeasure = stock.UnitOfMeasure,
+            Quantity = stock.Quantity,
+            WarehouseZone = stock.WarehouseZone,
+            OperatorId = stock.OperatorId,
+            CreatedBy = stock.CreatedBy,
+            Source = stock.Source,
+            OccurredAt = stock.OccurredAt,
+            CreatedAt = stock.CreatedAt,
+            Metadata = stock.Metadata
         };
     }
 }

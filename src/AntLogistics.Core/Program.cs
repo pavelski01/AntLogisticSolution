@@ -36,7 +36,7 @@ builder.Services.AddDbContext<AntLogisticsDbContext>(options =>
 
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<ICommodityService, CommodityService>();
-builder.Services.AddScoped<IReadingService, ReadingService>();
+builder.Services.AddScoped<IStockService, StockService>();
 
 var app = builder.Build();
 
@@ -170,12 +170,12 @@ app.MapGet("/api/v1/commodities/by-sku/{sku}", async (string sku, ICommodityServ
 .Produces<CommodityResponse>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status404NotFound);
 
-app.MapPost("/api/v1/readings", async (CreateReadingRequest request, IReadingService service, CancellationToken cancellationToken) =>
+app.MapPost("/api/v1/stocks", async (CreateStockRequest request, IStockService service, CancellationToken cancellationToken) =>
 {
     try
     {
-        var reading = await service.CreateReadingAsync(request, cancellationToken);
-        return Results.Created($"/api/v1/readings/{reading.Id}", reading);
+        var stock = await service.CreateStockAsync(request, cancellationToken);
+        return Results.Created($"/api/v1/stocks/{stock.Id}", stock);
     }
     catch (InvalidOperationException ex)
     {
@@ -186,80 +186,80 @@ app.MapPost("/api/v1/readings", async (CreateReadingRequest request, IReadingSer
         return Results.Problem(
             detail: ex.Message,
             statusCode: StatusCodes.Status500InternalServerError,
-            title: "An error occurred while creating the reading");
+            title: "An error occurred while creating the stock record");
     }
 })
-.WithName("CreateReading")
-.Produces<ReadingResponse>(StatusCodes.Status201Created)
+.WithName("CreateStock")
+.Produces<StockResponse>(StatusCodes.Status201Created)
 .ProducesProblem(StatusCodes.Status400BadRequest)
 .ProducesProblem(StatusCodes.Status500InternalServerError);
 
-app.MapGet("/api/v1/readings/{id:long}", async (long id, IReadingService service, CancellationToken cancellationToken) =>
+app.MapGet("/api/v1/stocks/{id:long}", async (long id, IStockService service, CancellationToken cancellationToken) =>
 {
-    var reading = await service.GetReadingByIdAsync(id, cancellationToken);
-    return reading is not null ? Results.Ok(reading) : Results.NotFound();
+    var stock = await service.GetStockByIdAsync(id, cancellationToken);
+    return stock is not null ? Results.Ok(stock) : Results.NotFound();
 })
-.WithName("GetReadingById")
-.Produces<ReadingResponse>(StatusCodes.Status200OK)
+.WithName("GetStockById")
+.Produces<StockResponse>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status404NotFound);
 
-app.MapGet("/api/v1/readings", async (
+app.MapGet("/api/v1/stocks", async (
     Guid? warehouseId,
     Guid? commodityId,
     DateTime? from,
     DateTime? to,
     int? limit,
-    IReadingService service,
+    IStockService service,
     CancellationToken cancellationToken) =>
 {
-    var readings = await service.GetReadingsAsync(
+    var stocks = await service.GetStocksAsync(
         warehouseId,
         commodityId,
         from,
         to,
         limit ?? 100,
         cancellationToken);
-    return Results.Ok(readings);
+    return Results.Ok(stocks);
 })
-.WithName("GetReadings")
-.Produces<IEnumerable<ReadingResponse>>(StatusCodes.Status200OK);
+.WithName("GetStocks")
+.Produces<IEnumerable<StockResponse>>(StatusCodes.Status200OK);
 
-app.MapGet("/api/v1/warehouses/{warehouseId:guid}/readings", async (
+app.MapGet("/api/v1/warehouses/{warehouseId:guid}/stocks", async (
     Guid warehouseId,
     DateTime? from,
     DateTime? to,
     int? limit,
-    IReadingService service,
+    IStockService service,
     CancellationToken cancellationToken) =>
 {
-    var readings = await service.GetReadingsByWarehouseAsync(
+    var stocks = await service.GetStocksByWarehouseAsync(
         warehouseId,
         from,
         to,
         limit ?? 100,
         cancellationToken);
-    return Results.Ok(readings);
+    return Results.Ok(stocks);
 })
-.WithName("GetReadingsByWarehouse")
-.Produces<IEnumerable<ReadingResponse>>(StatusCodes.Status200OK);
+.WithName("GetStocksByWarehouse")
+.Produces<IEnumerable<StockResponse>>(StatusCodes.Status200OK);
 
-app.MapGet("/api/v1/commodities/{commodityId:guid}/readings", async (
+app.MapGet("/api/v1/commodities/{commodityId:guid}/stocks", async (
     Guid commodityId,
     DateTime? from,
     DateTime? to,
     int? limit,
-    IReadingService service,
+    IStockService service,
     CancellationToken cancellationToken) =>
 {
-    var readings = await service.GetReadingsByCommodityAsync(
+    var stocks = await service.GetStocksByCommodityAsync(
         commodityId,
         from,
         to,
         limit ?? 100,
         cancellationToken);
-    return Results.Ok(readings);
+    return Results.Ok(stocks);
 })
-.WithName("GetReadingsByCommodity")
-.Produces<IEnumerable<ReadingResponse>>(StatusCodes.Status200OK);
+.WithName("GetStocksByCommodity")
+.Produces<IEnumerable<StockResponse>>(StatusCodes.Status200OK);
 
 app.Run();

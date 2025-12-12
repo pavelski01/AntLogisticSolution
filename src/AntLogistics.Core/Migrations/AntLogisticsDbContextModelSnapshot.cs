@@ -177,7 +177,7 @@ namespace AntLogistics.Core.Migrations
                         });
                 });
 
-            modelBuilder.Entity("AntLogistics.Core.Data.Models.Reading", b =>
+            modelBuilder.Entity("AntLogistics.Core.Data.Models.Stock", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -258,28 +258,31 @@ namespace AntLogistics.Core.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Metadata")
-                        .HasDatabaseName("idx_readings_metadata");
+                        .HasDatabaseName("idx_stocks_metadata");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Metadata"), "gin");
 
                     b.HasIndex("OperatorId");
 
                     b.HasIndex("Sku")
-                        .HasDatabaseName("idx_readings_sku");
+                        .HasDatabaseName("idx_stocks_sku");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Sku"), "hash");
 
                     b.HasIndex("CommodityId", "OccurredAt")
-                        .HasDatabaseName("idx_readings_commodity_time");
+                        .HasDatabaseName("idx_stocks_commodity_time");
 
                     b.HasIndex("WarehouseId", "CommodityId")
-                        .HasDatabaseName("idx_readings_active_wh")
+                        .HasDatabaseName("idx_stocks_active_wh")
                         .HasFilter("quantity > 0");
 
                     b.HasIndex("WarehouseId", "OccurredAt")
-                        .HasDatabaseName("idx_readings_wh_time");
+                        .HasDatabaseName("idx_stocks_wh_time");
 
-                    b.ToTable("readings", (string)null);
+                    b.ToTable("stocks", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_stocks_quantity_positive", "quantity > 0");
+                        });
                 });
 
             modelBuilder.Entity("AntLogistics.Core.Data.Models.Warehouse", b =>
@@ -379,21 +382,21 @@ namespace AntLogistics.Core.Migrations
                         });
                 });
 
-            modelBuilder.Entity("AntLogistics.Core.Data.Models.Reading", b =>
+            modelBuilder.Entity("AntLogistics.Core.Data.Models.Stock", b =>
                 {
                     b.HasOne("AntLogistics.Core.Data.Models.Commodity", "Commodity")
-                        .WithMany("Readings")
+                        .WithMany("Stocks")
                         .HasForeignKey("CommodityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("AntLogistics.Core.Data.Models.Operator", "Operator")
-                        .WithMany("Readings")
+                        .WithMany("Stocks")
                         .HasForeignKey("OperatorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("AntLogistics.Core.Data.Models.Warehouse", "Warehouse")
-                        .WithMany("Readings")
+                        .WithMany("Stocks")
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -407,17 +410,17 @@ namespace AntLogistics.Core.Migrations
 
             modelBuilder.Entity("AntLogistics.Core.Data.Models.Commodity", b =>
                 {
-                    b.Navigation("Readings");
+                    b.Navigation("Stocks");
                 });
 
             modelBuilder.Entity("AntLogistics.Core.Data.Models.Operator", b =>
                 {
-                    b.Navigation("Readings");
+                    b.Navigation("Stocks");
                 });
 
             modelBuilder.Entity("AntLogistics.Core.Data.Models.Warehouse", b =>
                 {
-                    b.Navigation("Readings");
+                    b.Navigation("Stocks");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,15 +1,15 @@
 namespace AntLogistics.Core.Data.Models;
 
 /// <summary>
-/// Represents a warehouse reading/inventory measurement.
+/// Represents a warehouse stock level/inventory measurement.
 /// Append-only table for audit trail.
 /// </summary>
-public class Reading
+public class Stock
 {
     private string _sku = string.Empty;
 
     /// <summary>
-    /// Gets or sets the unique identifier for the reading (auto-generated).
+    /// Gets or sets the unique identifier for the stock record (auto-generated).
     /// </summary>
     public long Id { get; set; }
 
@@ -33,22 +33,22 @@ public class Reading
     }
 
     /// <summary>
-    /// Gets or sets the unit of measure at the time of reading.
+    /// Gets or sets the unit of measure at the time of stock recording.
     /// </summary>
     public string UnitOfMeasure { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the measured quantity.
+    /// Gets or sets the stock quantity.
     /// </summary>
     public decimal Quantity { get; set; }
 
     /// <summary>
-    /// Gets or sets the warehouse zone where the reading was taken.
+    /// Gets or sets the warehouse zone where the stock was recorded.
     /// </summary>
     public string WarehouseZone { get; set; } = "DEFAULT";
 
     /// <summary>
-    /// Gets or sets the operator identifier who created the reading (nullable for audit).
+    /// Gets or sets the operator identifier who created the stock record (nullable for audit).
     /// </summary>
     public Guid? OperatorId { get; set; }
 
@@ -58,17 +58,17 @@ public class Reading
     public string CreatedBy { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the source of the reading (manual, API, import, etc.).
+    /// Gets or sets the source of the stock record (manual, API, import, etc.).
     /// </summary>
     public string Source { get; set; } = "manual";
 
     /// <summary>
-    /// Gets or sets the timestamp when the reading occurred physically.
+    /// Gets or sets the timestamp when the stock was recorded physically.
     /// </summary>
     public DateTime OccurredAt { get; set; }
 
     /// <summary>
-    /// Gets or sets the timestamp when the reading was persisted to the database.
+    /// Gets or sets the timestamp when the stock record was persisted to the database.
     /// </summary>
     public DateTime CreatedAt { get; set; }
 

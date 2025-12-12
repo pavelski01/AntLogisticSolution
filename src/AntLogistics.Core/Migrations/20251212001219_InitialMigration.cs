@@ -82,7 +82,7 @@ namespace AntLogistics.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "readings",
+                name: "stocks",
                 columns: table => new
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
@@ -102,21 +102,22 @@ namespace AntLogistics.Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_readings", x => x.id);
+                    table.PrimaryKey("PK_stocks", x => x.id);
+                    table.CheckConstraint("ck_stocks_quantity_positive", "quantity > 0");
                     table.ForeignKey(
-                        name: "FK_readings_commodities_commodity_id",
+                        name: "FK_stocks_commodities_commodity_id",
                         column: x => x.commodity_id,
                         principalTable: "commodities",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_readings_operators_operator_id",
+                        name: "FK_stocks_operators_operator_id",
                         column: x => x.operator_id,
                         principalTable: "operators",
                         principalColumn: "id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_readings_warehouses_warehouse_id",
+                        name: "FK_stocks_warehouses_warehouse_id",
                         column: x => x.warehouse_id,
                         principalTable: "warehouses",
                         principalColumn: "id",
@@ -149,36 +150,36 @@ namespace AntLogistics.Core.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "idx_readings_active_wh",
-                table: "readings",
+                name: "idx_stocks_active_wh",
+                table: "stocks",
                 columns: new[] { "warehouse_id", "commodity_id" },
                 filter: "quantity > 0");
 
             migrationBuilder.CreateIndex(
-                name: "idx_readings_commodity_time",
-                table: "readings",
+                name: "idx_stocks_commodity_time",
+                table: "stocks",
                 columns: new[] { "commodity_id", "occurred_at" });
 
             migrationBuilder.CreateIndex(
-                name: "idx_readings_metadata",
-                table: "readings",
+                name: "idx_stocks_metadata",
+                table: "stocks",
                 column: "metadata")
                 .Annotation("Npgsql:IndexMethod", "gin");
 
             migrationBuilder.CreateIndex(
-                name: "idx_readings_sku",
-                table: "readings",
+                name: "idx_stocks_sku",
+                table: "stocks",
                 column: "sku")
                 .Annotation("Npgsql:IndexMethod", "hash");
 
             migrationBuilder.CreateIndex(
-                name: "idx_readings_wh_time",
-                table: "readings",
+                name: "idx_stocks_wh_time",
+                table: "stocks",
                 columns: new[] { "warehouse_id", "occurred_at" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_readings_operator_id",
-                table: "readings",
+                name: "IX_stocks_operator_id",
+                table: "stocks",
                 column: "operator_id");
 
             migrationBuilder.CreateIndex(
@@ -198,7 +199,7 @@ namespace AntLogistics.Core.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "readings");
+                name: "stocks");
 
             migrationBuilder.DropTable(
                 name: "commodities");
