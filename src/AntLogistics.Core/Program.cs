@@ -37,6 +37,7 @@ builder.Services.AddDbContext<AntLogisticsDbContext>(options =>
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<ICommodityService, CommodityService>();
 builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 
 var app = builder.Build();
 
@@ -93,6 +94,14 @@ app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWareho
 .Produces<WarehouseResponse>(StatusCodes.Status201Created)
 .ProducesProblem(StatusCodes.Status400BadRequest)
 .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+app.MapPost("/api/v1/auth/login", async (LoginRequest request, IAuthorizationService auth, CancellationToken ct) =>
+{
+    var success = await auth.ValidateCredentialsAsync(request.Username, request.Password, ct);
+    return Results.Ok(new LoginResponse { Success = success });
+})
+.WithName("OperatorLogin")
+.Produces<LoginResponse>(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/warehouses/{id:guid}", async (Guid id, IWarehouseService service, CancellationToken cancellationToken) =>
 {

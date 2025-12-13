@@ -86,3 +86,11 @@ GET {{baseUrl}}/api/{{apiVersion}}/commodities/00000000-0000-0000-0000-000000000
 
 ### Get Stocks by Commodity with Date Range
 GET {{baseUrl}}/api/{{apiVersion}}/commodities/00000000-0000-0000-0000-000000000000/stocks?from=2025-12-01T00:00:00Z&to=2025-12-31T23:59:59Z
+
+### Operator Login
+POST {{baseUrl}}/api/{{apiVersion}}/auth/login
+Content-Type: application/json
+{
+  "username": "operator",
+  "password": "operator"
+}

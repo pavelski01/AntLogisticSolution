@@ -146,7 +146,7 @@ See `.github/instructions/astro.instructions.md` and `react.instructions.md` for
 
 **Commit format**: Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`)
 
-**Documentation**: Express intent through code, not comments. Use XML docs for public APIs only.
+**Documentation**: Express intent through code, not comments. Don't use XML docs for public APIs.
 
 **Dependencies**: Add packages via `Directory.Packages.props` (Central Package Management)
 
@@ -168,13 +168,10 @@ See `.github/instructions/astro.instructions.md` and `react.instructions.md` for
 
 ### Error Handling
 ```csharp
-// Use specific exceptions
 throw new InvalidOperationException("Order cannot be processed");
 
-// Log exceptions with context
 _logger.LogError(ex, "Failed to process order {OrderId}", orderId);
 
-// Return appropriate HTTP status codes
 return Results.NotFound($"Order {id} not found");
 ```
 
