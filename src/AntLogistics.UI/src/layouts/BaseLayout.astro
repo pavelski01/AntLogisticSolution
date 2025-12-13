@@ -1,13 +1,16 @@
 ---
 import "@/styles/globals.css";
 import ApiStatus from "@/components/ApiStatus.tsx";
+import AuthStatus from "@/components/AuthStatus.tsx";
+import AuthGate from "@/components/AuthGate.tsx";
 
 interface Props {
   title?: string;
   description?: string;
+  requiresAuth?: boolean;
 }
 
-const { title = "Ant Logistics", description = "Modern logistics management powered by .NET Aspire and Astro" } = Astro.props;
+const { title = "Ant Logistics", description = "Modern logistics management powered by .NET Aspire and Astro", requiresAuth = true } = Astro.props;
 ---
 
 <!doctype html>
@@ -54,15 +57,16 @@ const { title = "Ant Logistics", description = "Modern logistics management powe
               </li>
               <li>
                 <a
-                  href="/stock"
+                  href="/stocks"
                   class="text-white font-medium hover:opacity-80 transition-opacity"
                 >
                   Stocks
                 </a>
               </li>
             </ul>
-            <div class="ml-4">
+            <div class="ml-4 flex items-center gap-3">
               <ApiStatus client:load />
+              <AuthStatus client:load />
             </div>
           </div>
         </div>
@@ -70,11 +74,17 @@ const { title = "Ant Logistics", description = "Modern logistics management powe
     </nav>
 
     <main class="flex-1 container mx-auto px-6 py-8">
-      <slot />
+      {requiresAuth ? (
+        <AuthGate client:load>
+          <slot />
+        </AuthGate>
+      ) : (
+        <slot />
+      )}
     </main>
 
     <footer class="bg-gray-950 py-4 text-center text-gray-400">
-      <p>&copy; 2025 Ant Logistics. Built with .NET Aspire + Astro</p>
+      <p>&copy; 2025 Ant Logistics</p>
     </footer>
   </body>
 </html>
