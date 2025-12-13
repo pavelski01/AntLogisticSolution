@@ -1,5 +1,6 @@
 @baseUrl = http://localhost:5000
 @apiVersion = v1
+@token = paste_jwt_token_here
 
 ### OpenAPI/Swagger Endpoint
 GET {{baseUrl}}/openapi/v1.json
@@ -10,6 +11,7 @@ GET {{baseUrl}}/health
 ### Create Warehouse
 POST {{baseUrl}}/api/{{apiVersion}}/warehouses
 Content-Type: application/json
+Authorization: Bearer {{token}}
 {
   "code": "wh-001",
   "name": "Main Warehouse",
@@ -23,16 +25,20 @@ Content-Type: application/json
 
 ### Get All Warehouses
 GET {{baseUrl}}/api/{{apiVersion}}/warehouses?includeInactive=true
+Authorization: Bearer {{token}}
 
 ### Get Warehouse By ID
 GET {{baseUrl}}/api/{{apiVersion}}/warehouses/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
 
 ### Get Warehouse By Code
 GET {{baseUrl}}/api/{{apiVersion}}/warehouses/by-code/wh-001
+Authorization: Bearer {{token}}
 
 ### Create Commodity
 POST {{baseUrl}}/api/{{apiVersion}}/commodities
 Content-Type: application/json
+Authorization: Bearer {{token}}
 {
   "sku": "prod-001",
   "name": "Industrial Widget",
@@ -43,16 +49,20 @@ Content-Type: application/json
 
 ### Get All Commodities
 GET {{baseUrl}}/api/{{apiVersion}}/commodities?includeInactive=false
+Authorization: Bearer {{token}}
 
 ### Get Commodity By ID
 GET {{baseUrl}}/api/{{apiVersion}}/commodities/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
 
 ### Get Commodity By SKU
 GET {{baseUrl}}/api/{{apiVersion}}/commodities/by-sku/prod-001
+Authorization: Bearer {{token}}
 
 ### Create Stock
 POST {{baseUrl}}/api/{{apiVersion}}/stocks
 Content-Type: application/json
+Authorization: Bearer {{token}}
 {
   "warehouseId": "00000000-0000-0000-0000-000000000000",
   "commodityId": "00000000-0000-0000-0000-000000000000",
@@ -65,27 +75,35 @@ Content-Type: application/json
 
 ### Get All Stocks
 GET {{baseUrl}}/api/{{apiVersion}}/stocks?limit=50
+Authorization: Bearer {{token}}
 
 ### Get All Stocks with Filters
 GET {{baseUrl}}/api/{{apiVersion}}/stocks?warehouseId=00000000-0000-0000-0000-000000000000&commodityId=00000000-0000-0000-0000-000000000000&limit=100
+Authorization: Bearer {{token}}
 
 ### Get All Stocks with Date Range
 GET {{baseUrl}}/api/{{apiVersion}}/stocks?from=2025-12-01T00:00:00Z&to=2025-12-31T23:59:59Z&limit=200
+Authorization: Bearer {{token}}
 
 ### Get Stock By ID
 GET {{baseUrl}}/api/{{apiVersion}}/stocks/1
+Authorization: Bearer {{token}}
 
 ### Get Stocks by Warehouse
 GET {{baseUrl}}/api/{{apiVersion}}/warehouses/00000000-0000-0000-0000-000000000000/stocks?limit=50
+Authorization: Bearer {{token}}
 
 ### Get Stocks by Warehouse with Date Range
 GET {{baseUrl}}/api/{{apiVersion}}/warehouses/00000000-0000-0000-0000-000000000000/stocks?from=2025-12-01T00:00:00Z&to=2025-12-31T23:59:59Z
+Authorization: Bearer {{token}}
 
 ### Get Stocks by Commodity
 GET {{baseUrl}}/api/{{apiVersion}}/commodities/00000000-0000-0000-0000-000000000000/stocks?limit=50
+Authorization: Bearer {{token}}
 
 ### Get Stocks by Commodity with Date Range
 GET {{baseUrl}}/api/{{apiVersion}}/commodities/00000000-0000-0000-0000-000000000000/stocks?from=2025-12-01T00:00:00Z&to=2025-12-31T23:59:59Z
+Authorization: Bearer {{token}}
 
 ### Operator Login
 POST {{baseUrl}}/api/{{apiVersion}}/auth/login

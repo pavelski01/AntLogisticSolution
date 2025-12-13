@@ -151,6 +151,7 @@ app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWareho
     }
 })
 .WithName("CreateWarehouse")
+.RequireAuthorization()
 .Produces<WarehouseResponse>(StatusCodes.Status201Created)
 .ProducesProblem(StatusCodes.Status400BadRequest)
 .ProducesProblem(StatusCodes.Status500InternalServerError);
@@ -191,9 +192,16 @@ app.MapPost("/api/v1/auth/login", async (LoginRequest request, IAuthorizationSer
     };
     httpResponse.Cookies.Append("als_auth", token, cookieOptions);
 
-    return Results.Ok(new { success = true, username = normalized });
+    return Results.Ok(new LoginResponse
+    {
+        Success = true,
+        Username = normalized,
+        Token = token,
+        ExpiresAt = DateTime.UtcNow.AddMinutes(jwtExpiresMinutes)
+    });
 })
 .WithName("OperatorLogin")
+.AllowAnonymous()
 .Produces<LoginResponse>(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/auth/me", (HttpContext ctx) =>
@@ -223,6 +231,7 @@ app.MapPost("/api/v1/auth/logout", (HttpResponse res) =>
     return Results.Ok(new { success = true });
 })
 .WithName("OperatorLogout")
+.AllowAnonymous()
 .Produces(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/warehouses/{id:guid}", async (Guid id, IWarehouseService service, CancellationToken cancellationToken) =>
@@ -231,6 +240,7 @@ app.MapGet("/api/v1/warehouses/{id:guid}", async (Guid id, IWarehouseService ser
     return warehouse is not null ? Results.Ok(warehouse) : Results.NotFound();
 })
 .WithName("GetWarehouseById")
+.RequireAuthorization()
 .Produces<WarehouseResponse>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status404NotFound);
 
@@ -240,6 +250,7 @@ app.MapGet("/api/v1/warehouses", async (bool includeInactive, IWarehouseService 
     return Results.Ok(warehouses);
 })
 .WithName("GetAllWarehouses")
+.RequireAuthorization()
 .Produces<IEnumerable<WarehouseResponse>>(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/warehouses/by-code/{code}", async (string code, IWarehouseService service, CancellationToken cancellationToken) =>
@@ -248,6 +259,7 @@ app.MapGet("/api/v1/warehouses/by-code/{code}", async (string code, IWarehouseSe
     return warehouse is not null ? Results.Ok(warehouse) : Results.NotFound();
 })
 .WithName("GetWarehouseByCode")
+.RequireAuthorization()
 .Produces<WarehouseResponse>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status404NotFound);
 
@@ -271,6 +283,7 @@ app.MapPost("/api/v1/commodities", async (CreateCommodityRequest request, ICommo
     }
 })
 .WithName("CreateCommodity")
+.RequireAuthorization()
 .Produces<CommodityResponse>(StatusCodes.Status201Created)
 .ProducesProblem(StatusCodes.Status400BadRequest)
 .ProducesProblem(StatusCodes.Status500InternalServerError);
@@ -281,6 +294,7 @@ app.MapGet("/api/v1/commodities/{id:guid}", async (Guid id, ICommodityService se
     return commodity is not null ? Results.Ok(commodity) : Results.NotFound();
 })
 .WithName("GetCommodityById")
+.RequireAuthorization()
 .Produces<CommodityResponse>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status404NotFound);
 
@@ -290,6 +304,7 @@ app.MapGet("/api/v1/commodities", async (bool includeInactive, ICommodityService
     return Results.Ok(commodities);
 })
 .WithName("GetAllCommodities")
+.RequireAuthorization()
 .Produces<IEnumerable<CommodityResponse>>(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/commodities/by-sku/{sku}", async (string sku, ICommodityService service, CancellationToken cancellationToken) =>
@@ -298,14 +313,20 @@ app.MapGet("/api/v1/commodities/by-sku/{sku}", async (string sku, ICommodityServ
     return commodity is not null ? Results.Ok(commodity) : Results.NotFound();
 })
 .WithName("GetCommodityBySku")
+.RequireAuthorization()
 .Produces<CommodityResponse>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status404NotFound);
 
-app.MapPost("/api/v1/stocks", async (CreateStockRequest request, IStockService service, CancellationToken cancellationToken) =>
+app.MapPost("/api/v1/stocks", async (CreateStockRequest request, IStockService service, HttpContext httpContext, CancellationToken cancellationToken) =>
 {
     try
     {
-        var stock = await service.CreateStockAsync(request, cancellationToken);
+        var username = httpContext.User.FindFirstValue(ClaimTypes.Name);
+        var enriched = string.IsNullOrWhiteSpace(request.CreatedBy) && !string.IsNullOrWhiteSpace(username)
+            ? request with { CreatedBy = username }
+            : request;
+
+        var stock = await service.CreateStockAsync(enriched, cancellationToken);
         return Results.Created($"/api/v1/stocks/{stock.Id}", stock);
     }
     catch (InvalidOperationException ex)
@@ -321,6 +342,7 @@ app.MapPost("/api/v1/stocks", async (CreateStockRequest request, IStockService s
     }
 })
 .WithName("CreateStock")
+.RequireAuthorization()
 .Produces<StockResponse>(StatusCodes.Status201Created)
 .ProducesProblem(StatusCodes.Status400BadRequest)
 .ProducesProblem(StatusCodes.Status500InternalServerError);
@@ -331,6 +353,7 @@ app.MapGet("/api/v1/stocks/{id:long}", async (long id, IStockService service, Ca
     return stock is not null ? Results.Ok(stock) : Results.NotFound();
 })
 .WithName("GetStockById")
+.RequireAuthorization()
 .Produces<StockResponse>(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status404NotFound);
 
@@ -353,6 +376,7 @@ app.MapGet("/api/v1/stocks", async (
     return Results.Ok(stocks);
 })
 .WithName("GetStocks")
+.RequireAuthorization()
 .Produces<IEnumerable<StockResponse>>(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/warehouses/{warehouseId:guid}/stocks", async (
@@ -372,6 +396,7 @@ app.MapGet("/api/v1/warehouses/{warehouseId:guid}/stocks", async (
     return Results.Ok(stocks);
 })
 .WithName("GetStocksByWarehouse")
+.RequireAuthorization()
 .Produces<IEnumerable<StockResponse>>(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/commodities/{commodityId:guid}/stocks", async (
@@ -391,6 +416,7 @@ app.MapGet("/api/v1/commodities/{commodityId:guid}/stocks", async (
     return Results.Ok(stocks);
 })
 .WithName("GetStocksByCommodity")
+.RequireAuthorization()
 .Produces<IEnumerable<StockResponse>>(StatusCodes.Status200OK);
 
 app.Run();
