@@ -94,3 +94,9 @@ Content-Type: application/json
   "username": "operator",
   "password": "operator"
 }
+
+### Current Operator
+GET {{baseUrl}}/api/{{apiVersion}}/auth/me
+
+### Operator Logout
+POST {{baseUrl}}/api/{{apiVersion}}/auth/logout

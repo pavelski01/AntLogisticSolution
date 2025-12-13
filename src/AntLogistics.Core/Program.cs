@@ -1,7 +1,13 @@
 using AntLogistics.Core.Data;
 using AntLogistics.Core.Dto;
 using AntLogistics.Core.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +45,54 @@ builder.Services.AddScoped<ICommodityService, CommodityService>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        jwtKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+    }
+    else
+    {
+        throw new InvalidOperationException("JWT key is not configured. Set configuration key 'Jwt:Key'.");
+    }
+}
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "AntLogistics";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "AntLogisticsClients";
+var jwtExpiresMinutes = builder.Configuration.GetValue<int?>("Jwt:ExpiresMinutes") ?? 30;
+
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = signingKey,
+            ClockSkew = TimeSpan.FromMinutes(2)
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                if (ctx.Request.Cookies.TryGetValue("als_auth", out var token) && !string.IsNullOrWhiteSpace(token))
+                {
+                    ctx.Token = token;
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -67,9 +121,15 @@ if (app.Environment.IsDevelopment())
     app.UseCors();
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 app.MapDefaultEndpoints();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWarehouseService service, CancellationToken cancellationToken) =>
 {
@@ -95,13 +155,75 @@ app.MapPost("/api/v1/warehouses", async (CreateWarehouseRequest request, IWareho
 .ProducesProblem(StatusCodes.Status400BadRequest)
 .ProducesProblem(StatusCodes.Status500InternalServerError);
 
-app.MapPost("/api/v1/auth/login", async (LoginRequest request, IAuthorizationService auth, CancellationToken ct) =>
+app.MapPost("/api/v1/auth/login", async (LoginRequest request, IAuthorizationService auth, HttpResponse httpResponse, CancellationToken ct) =>
 {
     var success = await auth.ValidateCredentialsAsync(request.Username, request.Password, ct);
-    return Results.Ok(new LoginResponse { Success = success });
+    if (!success)
+    {
+        return Results.Ok(new LoginResponse { Success = false });
+    }
+
+    var normalized = request.Username.Trim().ToLowerInvariant();
+    var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, normalized),
+        new Claim(JwtRegisteredClaimNames.Sub, normalized),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
+
+    var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+    var jwt = new JwtSecurityToken(
+        issuer: jwtIssuer,
+        audience: jwtAudience,
+        claims: claims,
+        expires: DateTime.UtcNow.AddMinutes(jwtExpiresMinutes),
+        signingCredentials: creds);
+
+    var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+    var cookieOptions = new CookieOptions
+    {
+        HttpOnly = true,
+        Secure = app.Environment.IsProduction(),
+        SameSite = SameSiteMode.Lax,
+        Expires = DateTimeOffset.UtcNow.AddMinutes(jwtExpiresMinutes),
+        Path = "/"
+    };
+    httpResponse.Cookies.Append("als_auth", token, cookieOptions);
+
+    return Results.Ok(new { success = true, username = normalized });
 })
 .WithName("OperatorLogin")
 .Produces<LoginResponse>(StatusCodes.Status200OK);
+
+app.MapGet("/api/v1/auth/me", (HttpContext ctx) =>
+{
+    if (ctx.User?.Identity?.IsAuthenticated == true)
+    {
+        var name = ctx.User.FindFirstValue(ClaimTypes.Name) ?? ctx.User.Identity?.Name ?? "";
+        return Results.Ok(new { username = name });
+    }
+    return Results.Unauthorized();
+})
+.RequireAuthorization()
+.WithName("OperatorMe")
+.Produces(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status401Unauthorized);
+
+app.MapPost("/api/v1/auth/logout", (HttpResponse res) =>
+{
+    res.Cookies.Append("als_auth", string.Empty, new CookieOptions
+    {
+        HttpOnly = true,
+        Secure = app.Environment.IsProduction(),
+        SameSite = SameSiteMode.Lax,
+        Expires = DateTimeOffset.UtcNow.AddDays(-1),
+        Path = "/"
+    });
+    return Results.Ok(new { success = true });
+})
+.WithName("OperatorLogout")
+.Produces(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/warehouses/{id:guid}", async (Guid id, IWarehouseService service, CancellationToken cancellationToken) =>
 {

@@ -9,27 +9,17 @@ export default function AuthGate({ children }: Props) {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
 
   useEffect(() => {
-    const check = () => {
+    const check = async () => {
       try {
-        const v = localStorage.getItem("als:isLoggedIn");
-        setLoggedIn(v === "true");
+        const res = await fetch("/api/v1/auth/me", { credentials: "include" });
+        setLoggedIn(res.ok);
       } catch {
         setLoggedIn(false);
       } finally {
         setReady(true);
       }
     };
-
     check();
-
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "als:isLoggedIn") {
-        setLoggedIn(e.newValue === "true");
-      }
-    };
-
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   if (!ready) return null;

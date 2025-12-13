@@ -33,6 +33,7 @@ export default function LoginForm() {
     try {
       const res = await fetch("/api/v1/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
@@ -42,16 +43,12 @@ export default function LoginForm() {
         throw new Error(`Login failed (status ${res.status}). ${text}`);
       }
 
-      const data: { success: boolean } = await res.json();
+      const data: { success?: boolean } = await res.json();
       if (data.success) {
         setSuccess("Login successful");
-        try {
-          localStorage.setItem("als:isLoggedIn", "true");
-          localStorage.setItem("als:username", username);
-        } catch {}
         setTimeout(() => {
           window.location.assign("/");
-        }, 600);
+        }, 500);
       } else {
         setError("Invalid username or password");
       }

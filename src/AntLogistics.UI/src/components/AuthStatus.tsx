@@ -5,37 +5,29 @@ export default function AuthStatus() {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const read = () => {
+    const fetchMe = async () => {
       try {
-        const logged = localStorage.getItem("als:isLoggedIn") === "true";
-        const name = localStorage.getItem("als:username") || null;
-        setIsLoggedIn(logged);
-        setUsername(name);
+        const res = await fetch("/api/v1/auth/me", { credentials: "include" });
+        if (!res.ok) {
+          setIsLoggedIn(false);
+          setUsername(null);
+          return;
+        }
+        const data: { username: string } = await res.json();
+        setIsLoggedIn(true);
+        setUsername(data.username);
       } catch {
         setIsLoggedIn(false);
         setUsername(null);
       }
     };
-
-    read();
-
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "als:isLoggedIn" || e.key === "als:username") {
-        read();
-      }
-    };
-
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    fetchMe();
   }, []);
 
-  const onLogout = () => {
+  const onLogout = async () => {
     try {
-      localStorage.removeItem("als:isLoggedIn");
-      localStorage.removeItem("als:username");
+      await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" });
     } catch {}
-    setIsLoggedIn(false);
-    setUsername(null);
     window.location.assign("/login");
   };
 
