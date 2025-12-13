@@ -5,7 +5,7 @@ using AntLogistics.Core.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 
 namespace AntLogistics.Core.Tests;
 
@@ -20,7 +20,7 @@ public class CommodityServiceTests
         return new AntLogisticsDbContext(options);
     }
 
-    private static ILogger<CommodityService> CreateLogger() => new Mock<ILogger<CommodityService>>().Object;
+    private static ILogger<CommodityService> CreateLogger() => Substitute.For<ILogger<CommodityService>>();
 
     [TestMethod]
     public async Task CreateCommodityAsync_Throws_OnMissingFields()

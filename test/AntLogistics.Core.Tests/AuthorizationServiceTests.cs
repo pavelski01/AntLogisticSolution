@@ -4,7 +4,7 @@ using AntLogistics.Core.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 
 namespace AntLogistics.Core.Tests;
 
@@ -19,7 +19,7 @@ public class AuthorizationServiceTests
         return new AntLogisticsDbContext(options);
     }
 
-    private static ILogger<AuthorizationService> CreateLogger() => new Mock<ILogger<AuthorizationService>>().Object;
+    private static ILogger<AuthorizationService> CreateLogger() => Substitute.For<ILogger<AuthorizationService>>();
 
     [TestMethod]
     public async Task ValidateCredentialsAsync_ReturnsFalse_OnEmptyInput()

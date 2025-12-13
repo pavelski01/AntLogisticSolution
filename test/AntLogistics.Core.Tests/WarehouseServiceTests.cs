@@ -5,7 +5,7 @@ using AntLogistics.Core.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 
 namespace AntLogistics.Core.Tests;
 
@@ -20,7 +20,7 @@ public class WarehouseServiceTests
         return new AntLogisticsDbContext(options);
     }
 
-    private static ILogger<WarehouseService> CreateLogger() => new Mock<ILogger<WarehouseService>>().Object;
+    private static ILogger<WarehouseService> CreateLogger() => Substitute.For<ILogger<WarehouseService>>();
 
     [TestMethod]
     public async Task CreateWarehouseAsync_Throws_WhenCapacityNotPositive()
