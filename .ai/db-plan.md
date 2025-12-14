@@ -10,9 +10,9 @@
     | name | varchar(200) | NOT NULL | Display name |
     | address_line | text | NOT NULL | Street and number |
     | city | varchar(100) | NOT NULL | City |
-    | country_code | char(2) | NOT NULL, check (country_code ~ '^[A-Z]{2}$') | ISO 3166-1 alpha-2 |
+    | country_code | varchar(2) | NOT NULL, check (country_code ~ '^[A-Z]{2}$') | ISO 3166-1 alpha-2 |
     | postal_code | varchar(20) | NULL | Postal/zip code |
-    | default_zone | varchar(100) | NOT NULL | Default operational zone |
+    | default_zone | varchar(100) | NOT NULL default 'DEFAULT' | Default operational zone |
     | capacity | numeric(18,2) | NOT NULL, check (capacity > 0) | Warehouse capacity in configured units |
     | is_active | boolean | NOT NULL default true | Soft-active flag |
     | deactivated_at | timestamptz | NULL | Timestamp when disabled |
@@ -23,7 +23,7 @@
     | Column | Type | Constraints | Description |
     | --- | --- | --- | --- |
     | id | uuid | PK, default gen_random_uuid() | Stable identifier |
-    | sku | varchar(100) | NOT NULL, unique (lower(sku)), check (sku = lower(sku)) | Global SKU |
+    | sku | varchar(100) | NOT NULL, check (sku = lower(sku)) | Global SKU |
     | name | varchar(200) | NOT NULL | Item name |
     | unit_of_measure | varchar(20) | NOT NULL | Base UOM (e.g. kg) |
     | control_parameters | jsonb | NOT NULL default '{}'::jsonb | Additional constraints (temperature, etc.) |
@@ -36,7 +36,7 @@
     | Column | Type | Constraints | Description |
     | --- | --- | --- | --- |
     | id | uuid | PK, default gen_random_uuid() | Operator identifier |
-    | username | varchar(100) | NOT NULL, unique (lower(username)) | Login name |
+    | username | varchar(100) | NOT NULL, check (username = lower(username)) | Login name |
     | password_hash | varchar(255) | NOT NULL | Bcrypt hash |
     | full_name | varchar(200) | NOT NULL | Display name |
     | role | varchar(30) | NOT NULL default 'operator', check (role in ('operator','admin')) | Single-role model with admin override |
@@ -71,10 +71,10 @@
 
 3. **Indexes**
 
-- `warehouses`: unique index on `lower(code)`; partial index `idx_warehouses_active` on `(code)` where `is_active = true` to accelerate lookups; btree index on `(is_active, country_code)` for filtered listings.
-- `commodities`: unique index on `lower(sku)`; partial index on `(sku)` where `is_active = true`; gin index on `control_parameters` for JSON containment predicates.
-- `operators`: unique index on `lower(username)`; partial index on `(id)` where `is_active = true` to speed authentication checks.
-- `stocks`: composite index `idx_stocks_wh_time` on `(warehouse_id, occurred_at DESC)`; composite index on `(commodity_id, occurred_at DESC)`; hash index on `sku`; partial index `idx_stocks_active_wh` on `(warehouse_id, commodity_id)` where `quantity > 0`; gin index on `metadata` for filtering by custom attributes.
+- `warehouses`: partial unique index `idx_warehouses_active` on `code` where `is_active = true`; index `idx_warehouses_active_country` on `(is_active, country_code)`.
+- `commodities`: partial unique index `idx_commodities_active` on `sku` where `is_active = true`; gin index `idx_commodities_control_parameters` on `control_parameters`.
+- `operators`: unique index `ux_operators_username` on `username`; partial index `idx_operators_active` on `id` where `is_active = true`.
+- `stocks`: partial index `idx_stocks_active_wh` on `(warehouse_id, commodity_id)` where `quantity > 0`; index `idx_stocks_wh_time` on `(warehouse_id, occurred_at)`; index `idx_stocks_commodity_time` on `(commodity_id, occurred_at)`; index `idx_stocks_sku` on `sku` using hash; gin index `idx_stocks_metadata` on `metadata`; index `IX_stocks_operator_id` on `operator_id`.
 
 4. **PostgreSQL policies (RLS)**
 
@@ -123,7 +123,6 @@ _Helper functions `is_active_warehouse(uuid)` and `is_active_commodity(uuid)` re
 5. **Additional notes**
 
 - `gen_random_uuid()` requires the `pgcrypto` extension; enable it in the migration bootstrap.
-- `stocks` remains append-only via a `BEFORE UPDATE OR DELETE` trigger that raises an exception, ensuring auditability; corrections are handled by compensating entries.
 - Application services must set `SET LOCAL app.operator_id = '<uuid>';` and `SET LOCAL app.is_admin = 't'/'f';` per request so RLS policies can evaluate operator-level access.
 - `control_parameters` and `metadata` fields allow future validations (e.g., enforcing cold-chain range) without schema churn while still remaining queryable through GIN indexes.
 - Archiving strategy: monitor `stocks` row count; when retention thresholds are exceeded, move the oldest rows to a `stocks_history` table that shares the schema and inherits indexes/RLS policies.
