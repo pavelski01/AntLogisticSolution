@@ -1,6 +1,6 @@
 # Ant Logistics UI - Astro Frontend
 
-This is the frontend application for Ant Logistics, built with Astro 5 and React.
+This is the frontend application for Ant Logistics, built with Astro and React.
 
 ## Tech Stack
 
@@ -12,8 +12,8 @@ This is the frontend application for Ant Logistics, built with Astro 5 and React
 
 ## Prerequisites
 
-- Node.js v18+
-- npm (comes with Node.js)
+- Node.js v24+
+- npm
 
 ## Getting Started
 
