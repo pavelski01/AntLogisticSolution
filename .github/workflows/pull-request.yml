@@ -81,11 +81,13 @@ jobs:
 
       # Extensions are referenced in csproj and versions managed centrally
 
-      - name: Test + Coverage
+      - name: Test + Coverage (trx + cobertura)
         run: |
           dotnet test test/AntLogistics.Core.Tests/AntLogistics.Core.Tests.csproj \
             -c Release \
-            --collect "Code Coverage" \
+            -p:UseMicrosoftTestingPlatform=false \
+            --logger "trx;LogFileName=TestResults.trx" \
+            --collect "XPlat Code Coverage" \
             --results-directory ./TestResults
 
       - name: Locate coverage file
