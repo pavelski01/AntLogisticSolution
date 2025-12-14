@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   lint:
-    name: Lint (Backend + Frontend)
+    name: Lint/Format
     runs-on: ubuntu-latest
     env:
       DOTNET_VERSION: 10.0.x
@@ -79,15 +79,9 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      - name: Ensure Code Coverage collector
-        run: |
-          dotnet add test/AntLogistics.Core.Tests/AntLogistics.Core.Tests.csproj package Microsoft.Testing.Extensions.CodeCoverage
+      # Extensions are referenced in csproj and versions managed centrally
 
-      - name: Ensure TRX report generator
-        run: |
-          dotnet add test/AntLogistics.Core.Tests/AntLogistics.Core.Tests.csproj package Microsoft.Testing.Extensions.TrxReport
-
-      - name: Test + Coverage (trx + cobertura)
+      - name: Test + Coverage
         run: |
           dotnet test test/AntLogistics.Core.Tests/AntLogistics.Core.Tests.csproj \
             -c Release \
