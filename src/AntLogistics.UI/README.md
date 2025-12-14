@@ -29,7 +29,7 @@ npm install
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`
+The app will be available at `http://localhost:4321`
 
 3. Build for production:
 
@@ -45,9 +45,12 @@ npm run preview
 
 ## Available Scripts
 
-- `npm run dev` - Start development server on port 5173
+- `npm run dev` - Start development server on port 4321
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
+- `npm run test` - Run Vitest tests
+- `npm run test:watch` - Run Vitest in watch mode
+- `npm run coverage` - Run tests with coverage
 - `npm run lint` - Run ESLint
 - `npm run lint:fix` - Fix ESLint issues
 - `npm run format` - Format code with Prettier
@@ -55,7 +58,7 @@ npm run preview
 ## Project Structure
 
 ```
-ClientApp/
+.
 ├── src/
 │   ├── layouts/          # Astro layouts
 │   │   └── BaseLayout.astro
@@ -76,10 +79,10 @@ ClientApp/
 
 ## Key Features
 
-- **Server-Side Rendering (SSR)**: Configured with `@astrojs/node` adapter
+- **Static Site Generation (SSG)**: Generates static HTML output for fast performance
 - **React Integration**: Interactive components with `client:load` directive
 - **Tailwind CSS v4**: Modern utility-first styling with `@tailwindcss/vite` plugin
-- **API Proxy**: Configured to proxy `/api` requests to `http://localhost:5002`
+- **API Proxy**: Configured to proxy `/api` and `/health` requests to the backend (default `http://localhost:5000`)
 - **TypeScript**: Full type safety with strict mode
 - **ESLint & Prettier**: Code quality and formatting
 
@@ -93,7 +96,18 @@ vite: {
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:5002",
+        target:
+          process.env.services__core__http__0 ||
+          process.env.services__core__https__0 ||
+          "http://localhost:5000",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/health": {
+        target:
+          process.env.services__core__http__0 ||
+          process.env.services__core__https__0 ||
+          "http://localhost:5000",
         changeOrigin: true,
         secure: false,
       },
@@ -125,7 +139,7 @@ Use the `client:load` directive to hydrate React components:
 - Astro uses file-based routing: `src/pages/about.astro` → `/about`
 - Astro components are zero-JS by default (only React components with `client:*` directives send JS)
 - Tailwind v4 uses the new `@import "tailwindcss"` syntax
-- The app runs on port 5173 to maintain compatibility with the existing .NET backend proxy configuration
+- The app runs on port 4321 by default (override via PORT environment variable)
 
 ## Learn More
 

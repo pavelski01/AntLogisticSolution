@@ -1,5 +1,7 @@
 ---
+name: 'copilot-instructions-for-ant_logistic_solution'
 applyTo: '**'
+description: 'Comprehensive GitHub Copilot instructions tailored for the AntLogisticSolution project.'
 ---
 
 # GitHub Copilot Instructions for AntLogisticSolution
@@ -18,7 +20,7 @@ This starts the entire stack: PostgreSQL, Core API, and Astro dev server.
 **Frontend-only development**:
 ```powershell
 cd src/AntLogistics.UI
-npm run dev  # Astro dev server on port 4321
+npm run dev
 ```
 
 **Database migrations** (auto-applied on Core startup, or manually):
@@ -260,35 +262,11 @@ app.MapPost("/api/v1/orders", async (CreateOrderRequest request, IOrderService s
 ## Git Practices
 
 ### Commit Messages
-- Use conventional commits: `feat:`, `fix:`, `chore:`, `docs:`
-- Keep first line under 50 characters
-- Add detailed description if needed
+- Use <practice>conventional commits</practice>: `feat:`, `fix:`, `chore:`, `docs:`
+- Keep only one-line messages under 50 characters
 
 ### Branch Strategy
 - `master`: Production-ready code
-- `develop`: Integration branch
-
-## Additional Guidelines
-
-### Logging
-```csharp
-_logger.LogInformation("Processing order {OrderId} for customer {CustomerId}", 
-    orderId, customerId);
-```
-
-### Configuration
-```csharp
-// Use strongly-typed configuration
-builder.Services.Configure<OrderSettings>(
-    builder.Configuration.GetSection("OrderSettings"));
-```
-
-### Dependency Injection
-```csharp
-// Register services
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddSingleton<IOrderCache, RedisOrderCache>();
-```
 
 ---
 
