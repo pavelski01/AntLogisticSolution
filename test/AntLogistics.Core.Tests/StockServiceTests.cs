@@ -170,4 +170,57 @@ public class StockServiceTests
         Assert.AreNotEqual(default(DateTime), res.CreatedAt);
         Assert.AreEqual("{}", res.Metadata);
     }
+
+    [TestMethod]
+    public async Task GetStockByIdAsync_ReturnsNull_WhenMissing_And_Found_WhenSeeded()
+    {
+        using var ctx = CreateContext();
+        var svc = new StockService(ctx, CreateLogger());
+
+        var missing = await svc.GetStockByIdAsync(999);
+        Assert.IsNull(missing);
+
+        var (wh, cm) = SeedWarehouseAndCommodity(ctx);
+        var s = new Stock
+        {
+            WarehouseId = wh.Id,
+            CommodityId = cm.Id,
+            Sku = cm.Sku,
+            UnitOfMeasure = cm.UnitOfMeasure,
+            Quantity = 1,
+            CreatedBy = "tester",
+            OccurredAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+        ctx.Stocks.Add(s);
+        await ctx.SaveChangesAsync();
+
+        var found = await svc.GetStockByIdAsync(s.Id);
+        Assert.IsNotNull(found);
+        Assert.AreEqual(s.Id, found!.Id);
+    }
+
+    [TestMethod]
+    public async Task GetStocksAsync_AppliesFilters_And_Limit()
+    {
+        using var ctx = CreateContext();
+        var svc = new StockService(ctx, CreateLogger());
+        var (wh, cm) = SeedWarehouseAndCommodity(ctx);
+
+        // Seed three records with different timestamps
+        var t1 = new DateTime(2023, 12, 31, 23, 0, 0, DateTimeKind.Utc);
+        var t2 = new DateTime(2024, 01, 02, 0, 0, 0, DateTimeKind.Utc);
+        var t3 = new DateTime(2024, 01, 03, 0, 0, 0, DateTimeKind.Utc);
+        ctx.Stocks.AddRange(
+            new Stock { WarehouseId = wh.Id, CommodityId = cm.Id, Sku = cm.Sku, UnitOfMeasure = cm.UnitOfMeasure, Quantity = 1, CreatedBy = "t", OccurredAt = t1 },
+            new Stock { WarehouseId = wh.Id, CommodityId = cm.Id, Sku = cm.Sku, UnitOfMeasure = cm.UnitOfMeasure, Quantity = 2, CreatedBy = "t", OccurredAt = t2 },
+            new Stock { WarehouseId = wh.Id, CommodityId = cm.Id, Sku = cm.Sku, UnitOfMeasure = cm.UnitOfMeasure, Quantity = 3, CreatedBy = "t", OccurredAt = t3 }
+        );
+        await ctx.SaveChangesAsync();
+
+        var filtered = await svc.GetStocksAsync(warehouseId: wh.Id, from: new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc), to: new DateTime(2024, 01, 03, 0, 0, 0, DateTimeKind.Utc));
+        Assert.AreEqual(2, filtered.Count());
+
+        var limited = await svc.GetStocksAsync(warehouseId: wh.Id, limit: 1);
+        Assert.AreEqual(1, limited.Count());
+    }
 }

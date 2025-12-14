@@ -83,4 +83,24 @@ public class AuthorizationServiceTests
         var svc = new AuthorizationService(ctx, CreateLogger());
         Assert.IsFalse(await svc.ValidateCredentialsAsync("user", "wrong"));
     }
+
+    [TestMethod]
+    public async Task ValidateCredentialsAsync_ReturnsFalse_WhenOperatorInactive()
+    {
+        using var ctx = CreateContext();
+        var op = new Operator
+        {
+            Id = Guid.NewGuid(),
+            Username = "inactive",
+            FullName = "User",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("pass"),
+            Role = OperatorRole.Operator,
+            IsActive = false
+        };
+        ctx.Operators.Add(op);
+        await ctx.SaveChangesAsync();
+
+        var svc = new AuthorizationService(ctx, CreateLogger());
+        Assert.IsFalse(await svc.ValidateCredentialsAsync("inactive", "pass"));
+    }
 }

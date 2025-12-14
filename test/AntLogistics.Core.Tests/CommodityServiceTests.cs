@@ -92,4 +92,40 @@ public class CommodityServiceTests
         Assert.IsTrue(res.IsActive);
         Assert.AreNotEqual(default(DateTime), res.CreatedAt);
     }
+
+    [TestMethod]
+    public async Task GetCommodityByIdAsync_ReturnsNull_WhenMissing_And_Found_WhenSeeded()
+    {
+        using var ctx = CreateContext();
+        var svc = new CommodityService(ctx, CreateLogger());
+
+        var missing = await svc.GetCommodityByIdAsync(Guid.NewGuid());
+        Assert.IsNull(missing);
+
+        var cm = new Commodity { Sku = "sku-2", Name = "Two", UnitOfMeasure = "pcs", IsActive = true };
+        ctx.Commodities.Add(cm);
+        await ctx.SaveChangesAsync();
+
+        var found = await svc.GetCommodityByIdAsync(cm.Id);
+        Assert.IsNotNull(found);
+        Assert.AreEqual("sku-2", found!.Sku);
+    }
+
+    [TestMethod]
+    public async Task GetAllCommoditiesAsync_FiltersInactive_ByDefault()
+    {
+        using var ctx = CreateContext();
+        ctx.Commodities.AddRange(
+            new Commodity { Sku = "a", Name = "A", UnitOfMeasure = "kg", IsActive = true },
+            new Commodity { Sku = "b", Name = "B", UnitOfMeasure = "kg", IsActive = false }
+        );
+        await ctx.SaveChangesAsync();
+
+        var svc = new CommodityService(ctx, CreateLogger());
+        var onlyActive = await svc.GetAllCommoditiesAsync();
+        var withInactive = await svc.GetAllCommoditiesAsync(includeInactive: true);
+
+        Assert.AreEqual(1, onlyActive.Count());
+        Assert.AreEqual(2, withInactive.Count());
+    }
 }

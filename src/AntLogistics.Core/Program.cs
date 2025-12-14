@@ -95,23 +95,36 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+var skipDbInit = app.Configuration.GetValue<bool>("SkipDbInit");
+if (!skipDbInit)
 {
-    var services = scope.ServiceProvider;
-    try
+    using (var scope = app.Services.CreateScope())
     {
-        var context = services.GetRequiredService<AntLogisticsDbContext>();
-        var logger = services.GetRequiredService<ILogger<Program>>();
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<AntLogisticsDbContext>();
+            var logger = services.GetRequiredService<ILogger<Program>>();
 
-        logger.LogInformation("Applying database migrations...");
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Database migrations applied successfully");
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while applying migrations");
-        throw;
+            var provider = context.Database.ProviderName ?? string.Empty;
+            if (provider.Contains("Npgsql", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogInformation("Applying database migrations...");
+                await context.Database.MigrateAsync();
+                logger.LogInformation("Database migrations applied successfully");
+            }
+            else
+            {
+                logger.LogInformation("Ensuring database is created for provider {Provider}", provider);
+                await context.Database.EnsureCreatedAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred while initializing database");
+            throw;
+        }
     }
 }
 

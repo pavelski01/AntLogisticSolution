@@ -154,4 +154,20 @@ public class WarehouseServiceTests
         Assert.AreEqual(1, onlyActive.Count());
         Assert.AreEqual(2, withInactive.Count());
     }
+
+    [TestMethod]
+    public async Task GetWarehouseByIdAsync_ReturnsEntity_WhenExists()
+    {
+        using var ctx = CreateContext();
+        var wh = new Warehouse { Name = "Main", Code = "main", AddressLine = "x", City = "c", CountryCode = "US", Capacity = 10, IsActive = true };
+        ctx.Warehouses.Add(wh);
+        await ctx.SaveChangesAsync();
+
+        var svc = new WarehouseService(ctx, CreateLogger());
+        var found = await svc.GetWarehouseByIdAsync(wh.Id);
+
+        Assert.IsNotNull(found);
+        Assert.AreEqual(wh.Id, found!.Id);
+        Assert.AreEqual("main", found.Code);
+    }
 }
