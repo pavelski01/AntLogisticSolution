@@ -160,7 +160,7 @@ jobs:
         id: covsum
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: artifacts/**/coverage.cobertura.xml,artifacts/**/lcov.info
+          filename: artifacts/**/coverage.cobertura.xml,artifacts/**/cobertura*.xml
           format: markdown
           output: file
           fail_below_min: false
