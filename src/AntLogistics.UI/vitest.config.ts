@@ -2,12 +2,9 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    environment: "jsdom",
-    globals: true,
-    setupFiles: ["./src/setupTests.ts"],
-    css: true,
     coverage: {
-      reporter: ["text", "html", "lcov"],
+      provider: "v8",
+      reporter: ["text", "html", "lcov", "cobertura"],
       reportsDirectory: "./coverage",
       include: ["src/**/*.{ts,tsx}"],
       exclude: [
@@ -17,5 +14,9 @@ export default defineConfig({
         "node_modules/**",
       ],
     },
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["./src/setupTests.ts"],
+    css: true,
   },
 });

@@ -27,8 +27,9 @@ export default function AuthStatus() {
   const onLogout = async () => {
     try {
       await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" });
-    } catch {}
-    window.location.assign("/login");
+    } finally {
+      window.location.assign("/login");
+    }
   };
 
   if (!isLoggedIn) {

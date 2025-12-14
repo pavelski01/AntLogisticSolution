@@ -56,11 +56,30 @@ const reactConfig = tseslint.config({
   },
 });
 
+const nodeConfig = tseslint.config({
+  files: ["astro.config.mjs", "**/*.mjs"],
+  languageOptions: {
+    globals: {
+      process: "readonly",
+    },
+  },
+});
+
+const testsConfig = tseslint.config({
+  files: ["src/**/__tests__/**/*.{ts,tsx}"],
+  rules: {
+    "@typescript-eslint/triple-slash-reference": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+  },
+});
+
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   baseConfig,
   jsxA11yConfig,
   reactConfig,
+  nodeConfig,
+  testsConfig,
   eslintPluginAstro.configs["flat/recommended"],
   eslintPluginPrettier
 );
