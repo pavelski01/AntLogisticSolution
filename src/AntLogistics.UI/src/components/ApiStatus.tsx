@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 export default function ApiStatus() {
-  const [status, setStatus] = useState<string>("Checking...");
   const [isOnline, setIsOnline] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -11,14 +10,11 @@ export default function ApiStatus() {
         const response = await fetch("/health");
 
         if (response.ok) {
-          setStatus("API is healthy");
           setIsOnline(true);
         } else {
-          setStatus(`API returned status ${response.status}`);
           setIsOnline(false);
         }
       } catch (error) {
-        setStatus("Unable to reach API");
         setIsOnline(false);
         console.error("API health check error:", error);
       } finally {
