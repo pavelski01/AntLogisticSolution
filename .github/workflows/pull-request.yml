@@ -1,0 +1,230 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    branches: [ master, main ]
+    types: [ opened, synchronize, reopened, ready_for_review ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (Backend + Frontend)
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_VERSION: 10.0.x
+      NODE_VERSION: lts/*
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Show branches (verify default)
+        run: git branch -a | cat
+
+      - name: Check .nvmrc in root
+        if: ${{ hashFiles('.nvmrc') != '' }}
+        run: |
+          echo "Found .nvmrc" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat .nvmrc >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Check .env.example in root
+        if: ${{ hashFiles('.env.example') != '' }}
+        run: |
+          echo "Found .env.example (review required env variables)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat .env.example >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Summarize root package.json scripts
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          echo "Found root package.json" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          cat package.json >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Summarize MSBuild props
+        if: ${{ hashFiles('Directory.Build.props') != '' }}
+        run: |
+          echo "Found Directory.Build.props" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```xml' >> $GITHUB_STEP_SUMMARY
+          cat Directory.Build.props >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore .NET
+        run: dotnet restore
+
+      - name: Install dotnet-format tool
+        run: |
+          dotnet tool install --global dotnet-format
+          echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Lint backend with dotnet-format (verify no changes)
+        run: dotnet format --verify-no-changes
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/AntLogistics.UI/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: src/AntLogistics.UI
+        run: npm ci
+
+      - name: Lint frontend with ESLint
+        working-directory: src/AntLogistics.UI
+        run: npm run lint
+
+  test-backend:
+    name: Unit Tests (Backend)
+    runs-on: ubuntu-latest
+    needs: [ lint ]
+    env:
+      DOTNET_VERSION: 10.0.x
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Ensure Code Coverage collector
+        run: |
+          dotnet add test/AntLogistics.Core.Tests/AntLogistics.Core.Tests.csproj package Microsoft.Testing.Extensions.CodeCoverage
+
+      - name: Test + Coverage (trx + cobertura)
+        run: |
+          dotnet test test/AntLogistics.Core.Tests/AntLogistics.Core.Tests.csproj \
+            -c Release \
+            --logger "trx;LogFileName=TestResults.trx" \
+            --collect "Code Coverage" \
+            --results-directory ./TestResults
+
+      - name: Locate coverage file
+        id: findcov
+        shell: bash
+        run: |
+          set -e
+          FILE=$(find ./TestResults -type f -name "coverage.cobertura.xml" | head -n 1 || true)
+          echo "file=$FILE" >> $GITHUB_OUTPUT
+          if [ -n "$FILE" ]; then echo "Found coverage: $FILE"; else echo "No cobertura coverage file found"; fi
+
+      - name: Upload backend test results
+        uses: actions/upload-artifact@v6
+        with:
+          name: backend-test-results
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            TestResults/**
+            ${{ steps.findcov.outputs.file }}
+
+  test-frontend:
+    name: Unit Tests (Frontend)
+    runs-on: ubuntu-latest
+    needs: [ lint ]
+    env:
+      NODE_VERSION: lts/*
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/AntLogistics.UI/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/AntLogistics.UI
+        run: npm ci
+
+      - name: Run unit tests with coverage
+        working-directory: src/AntLogistics.UI
+        run: npm run coverage
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v6
+        with:
+          name: frontend-coverage
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            src/AntLogistics.UI/coverage/lcov.info
+            src/AntLogistics.UI/coverage/**
+
+  status-comment:
+    name: PR Status Comment
+    runs-on: ubuntu-latest
+    needs: [ lint, test-backend, test-frontend ]
+    if: ${{ success() && github.event_name == 'pull_request' }}
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: ./artifacts
+          merge-multiple: true
+
+      - name: Generate Coverage Summary
+        id: covsum
+        uses: irongut/CodeCoverageSummary@v1
+        with:
+          filename: |
+            artifacts/**/coverage.cobertura.xml
+            artifacts/**/lcov.info
+          format: markdown
+          output: file
+          fail_below_min: false
+
+      - name: Compose PR comment body
+        id: body
+        shell: bash
+        run: |
+          echo "body<<'EOF'" >> $GITHUB_OUTPUT
+          echo "✅ Lint + backend + frontend tests passed." >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          if [ -f code-coverage-results.md ]; then
+            echo "### Code Coverage" >> $GITHUB_OUTPUT
+            cat code-coverage-results.md >> $GITHUB_OUTPUT
+          else
+            echo "_Coverage files uploaded as artifacts._" >> $GITHUB_OUTPUT
+          fi
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post PR comment
+        uses: actions/github-script@v8
+        env:
+          BODY: ${{ steps.body.outputs.body }}
+        with:
+          script: |
+            const body = process.env.BODY || '✅ Lint + tests passed.';
+            const issue_number = context.issue.number;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              body
+            });
+          result-encoding: string

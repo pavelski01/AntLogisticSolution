@@ -29,7 +29,7 @@ public class StockService : IStockService
     /// <inheritdoc/>
     public async Task<StockResponse> CreateStockAsync(CreateStockRequest request, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Creating stock record for warehouse {WarehouseId} and commodity {CommodityId}", 
+        _logger.LogInformation("Creating stock record for warehouse {WarehouseId} and commodity {CommodityId}",
             request.WarehouseId, request.CommodityId);
 
         if (request.Quantity <= 0)
@@ -89,7 +89,7 @@ public class StockService : IStockService
         _context.Stocks.Add(stock);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Successfully created stock record {StockId} for warehouse {WarehouseId}", 
+        _logger.LogInformation("Successfully created stock record {StockId} for warehouse {WarehouseId}",
             stock.Id, stock.WarehouseId);
 
         return MapToResponse(stock);
