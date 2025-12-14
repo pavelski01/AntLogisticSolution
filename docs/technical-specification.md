@@ -1,7 +1,7 @@
 # AntLogisticSolution - Technical Specification
 
 ## Overview
-AntLogistics WMS MVP is a web application for warehouse management, enabling teams to record foundational data about warehouses, items (commodities), and goods readings. Built with .NET 9 and .NET Aspire 13.0 for cloud-native microservices orchestration, using PostgreSQL and Entity Framework Core. The MVP delivers a browser interface where authenticated operators can manage master data and capture inventory readings.
+AntLogistics WMS MVP is a web application for warehouse management, enabling teams to record foundational data about warehouses, items (commodities), and goods readings. Built with .NET 10 and .NET Aspire 13.0 for cloud-native microservices orchestration, using PostgreSQL and Entity Framework Core. The MVP delivers a browser interface where authenticated operators can manage master data and capture inventory readings.
 
 ## Project Structure
 
@@ -10,24 +10,24 @@ AntLogisticSolution/
 ├── src/
 │   ├── AntLogistics.AppHost/          # Aspire orchestration host
 │   ├── AntLogistics.ServiceDefaults/  # Shared Aspire configurations
-│   ├── AntLogistics.Core/             # Core API service
+│   ├── AntLogistics.Core/             # Backend API service
 │   │   ├── Data/
-│   │   │   ├── AntLogisticsDbContext.cs
-│   │   │   └── Models/
-│   │   │       ├── Warehouse.cs
-│   │   │       └── Commodity.cs
 │   │   ├── Dto/
-│   │   │   ├── CreateWarehouseRequest.cs
-│   │   │   └── WarehouseResponse.cs
 │   │   ├── Services/
-│   │   │   ├── IWarehouseService.cs
-│   │   │   └── WarehouseService.cs
 │   │   └── Migrations/
 │   └── AntLogistics.UI/               # Frontend (Astro + React)
-│       └── ClientApp/                 # Vite-based client application
+│       ├── astro.config.mjs
+│       ├── eslint.config.js
+│       ├── package.json
+│       ├── README.md
+│       ├── tsconfig.json
+│       ├── vitest.config.ts
+│       ├── public/
+│       └── src/
 ├── docs/                              # Documentation
-│   ├── prd.md                         # Product Requirements (symlink)
-│   ├── project-specification.md
+│   ├── api-plan.md
+│   ├── db-plan.md
+│   ├── prd.md
 │   └── technical-specification.md
 ├── .ai/                               # AI-assisted development files
 │   └── prd.md                         # Product Requirements Document
@@ -35,7 +35,9 @@ AntLogisticSolution/
 │   ├── copilot-instructions.md        # GitHub Copilot guidelines
 │   ├── instructions/                  # Custom instruction files
 │   └── prompts/                       # Custom Copilot prompts
-└── tests/                             # Test projects (planned)
+├── test/                              # Test projects
+│   └── AntLogistics.Core.Tests/
+└── AntLogistics.slnx                  # Solution file
 ```
 
 ## Core Components
@@ -101,41 +103,57 @@ AntLogisticSolution/
 
 ### Warehouse Entity
 ```csharp
-- Id: int (Primary Key)
-- Name: string (200 chars, required)
-- Code: string (50 chars, unique, required)
-- Address: string (500 chars, required)
-- City: string (100 chars, required)
-- Country: string (100 chars, required)
-- PostalCode: string? (20 chars, optional)
-- Capacity: decimal (18,2 precision)
+- Id: Guid (Primary Key)
+- Code: string (max 50 chars, lowercase, required)
+- Name: string (max 200 chars, required)
+- AddressLine: string (text field, required)
+- City: string (max 100 chars, required)
+- CountryCode: string (ISO 3166-1 alpha-2, uppercase, required)
+- PostalCode: string? (max 20 chars, optional)
+- DefaultZone: string (default "DEFAULT")
+- Capacity: decimal (required)
 - IsActive: bool (default: true)
+- DeactivatedAt: DateTime? (soft-delete timestamp)
 - CreatedAt: DateTime (UTC, auto-set)
-- UpdatedAt: DateTime? (UTC, auto-set on modification)
-- Commodities: ICollection<Commodity> (navigation property)
+- UpdatedAt: DateTime (UTC, auto-set)
+- Stocks: ICollection<Stock> (navigation property)
 ```
 
 ### Commodity Entity
 ```csharp
-- Id: int (Primary Key)
-- Name: string (required)
-- Sku: string (unique, required)
-- Description: string? (optional)
-- Category: string? (optional)
-- UnitOfMeasure: string (default: "pcs")
-- WeightPerUnit: decimal? (optional)
-- VolumePerUnit: decimal? (optional)
-- UnitPrice: decimal
-- WarehouseId: int (Foreign Key)
-- Warehouse: Warehouse (navigation property)
-- Quantity: decimal (current stock)
-- MinimumStockLevel: decimal? (reorder point)
+- Id: Guid (Primary Key)
+- Sku: string (max 100 chars, lowercase, required)
+- Name: string (max 200 chars, required)
+- UnitOfMeasure: string (max 20 chars, required)
+- ControlParameters: string (JSON, default "{}")
 - IsActive: bool (default: true)
+- DeactivatedAt: DateTime? (soft-delete timestamp)
 - CreatedAt: DateTime (UTC, auto-set)
-- UpdatedAt: DateTime? (UTC, auto-set on modification)
+- UpdatedAt: DateTime (UTC, auto-set)
+- Stocks: ICollection<Stock> (navigation property)
 ```
 
-## Configuration Management
+### Stock Entity
+```csharp
+- Id: long (Primary Key)
+- WarehouseId: Guid (Foreign Key)
+- CommodityId: Guid (Foreign Key)
+- Sku: string (denormalized SKU, lowercase)
+- UnitOfMeasure: string (required)
+- Quantity: decimal (required)
+- WarehouseZone: string (default "DEFAULT")
+- OperatorId: Guid? (optional)
+- CreatedBy: string (operator label/name, required)
+- Source: string (default "manual")
+- OccurredAt: DateTime (physical timestamp)
+- CreatedAt: DateTime (UTC, auto-set)
+- Metadata: string (JSON, default "{}")
+- Warehouse: Warehouse (navigation property)
+- Commodity: Commodity (navigation property)
+- Operator: Operator? (navigation property)
+```
+
+## Configuration Management## Configuration Management
 
 ### Central Package Management
 - **File**: `Directory.Packages.props`
@@ -143,11 +161,11 @@ AntLogisticSolution/
 - **Benefits**: Consistent package versions across all projects
 
 ### Key Dependencies
-- Aspire.Hosting.* (13.0.0)
-- Microsoft.EntityFrameworkCore (9.0.0)
-- Npgsql.EntityFrameworkCore.PostgreSQL (9.0.0)
-- OpenTelemetry.* (1.10.0)
-- Microsoft.Extensions.* (9.0.0)
+- Aspire.Hosting.* (13.0.2)
+- Microsoft.EntityFrameworkCore (9.0.2)
+- Npgsql.EntityFrameworkCore.PostgreSQL (9.0.4)
+- OpenTelemetry.* (1.14.0)
+- Microsoft.Extensions.* (10.0.0)
 
 ## Development Guidelines
 
@@ -178,22 +196,62 @@ AntLogisticSolution/
 - **Plural Resources**: `/warehouses` not `/warehouse`
 
 ### Example Endpoints (Implemented)
+
+#### Health Checks (Development only)
 ```
-GET    /api/v1/ping                     - Health check endpoint
-GET    /api/v1/warehouses               - List all warehouses (with includeInactive filter)
-GET    /api/v1/warehouses/{id}          - Get warehouse by ID
+GET    /health                        - Health check endpoint (all checks)
+GET    /alive                         - Liveness endpoint
+```
+
+#### Authentication
+```
+POST   /api/v1/auth/login             - Operator login
+GET    /api/v1/auth/me                - Get current operator
+POST   /api/v1/auth/logout            - Operator logout
+```
+
+#### Warehouse Endpoints
+```
+POST   /api/v1/warehouses             - Create new warehouse
+GET    /api/v1/warehouses             - List all warehouses (includeInactive flag)
+GET    /api/v1/warehouses/{id}        - Get warehouse by ID
 GET    /api/v1/warehouses/by-code/{code} - Get warehouse by code
-POST   /api/v1/warehouses               - Create new warehouse
+```
+
+#### Commodity Endpoints
+```
+POST   /api/v1/commodities            - Create new commodity
+GET    /api/v1/commodities            - List all commodities (includeInactive flag)
+GET    /api/v1/commodities/{id}       - Get commodity by ID
+GET    /api/v1/commodities/by-sku/{sku} - Get commodity by SKU
+```
+
+#### Stock Endpoints
+```
+POST   /api/v1/stocks                 - Record stock reading
+GET    /api/v1/stocks/{id}            - Get stock record by ID
+GET    /api/v1/stocks                 - List stock records with filters (warehouseId, commodityId, from, to, limit)
+GET    /api/v1/warehouses/{warehouseId}/stocks - Get stocks for warehouse
+GET    /api/v1/commodities/{commodityId}/stocks - Get stocks for commodity
 ```
 
 ### Planned Endpoints
+
+#### Warehouse Updates
 ```
 PUT    /api/v1/warehouses/{id}          - Update warehouse
-DELETE /api/v1/warehouses/{id}          - Delete/deactivate warehouse
-GET    /api/v1/commodities              - List all commodities
-POST   /api/v1/commodities              - Create new commodity
-POST   /api/v1/readings                 - Record goods reading
-GET    /api/v1/inventory                - View inventory per warehouse
+DELETE /api/v1/warehouses/{id}          - Deactivate warehouse
+```
+
+#### Commodity Updates
+```
+PUT    /api/v1/commodities/{id}         - Update commodity
+DELETE /api/v1/commodities/{id}         - Deactivate commodity
+```
+
+#### Inventory Summary
+```
+GET    /api/v1/inventory                - View aggregated inventory per warehouse
 ```
 
 ## Observability
@@ -256,7 +314,7 @@ dotnet ef migrations remove --project src/AntLogistics.Core
 ## Running the Application
 
 ### Prerequisites
-- .NET 9 SDK
+- .NET 10 SDK
 - Docker Desktop (for PostgreSQL)
 - Visual Studio 2022 or VS Code with C# DevKit
 
@@ -268,8 +326,8 @@ dotnet run --project src/AntLogistics.AppHost
 # Run Core API standalone
 dotnet run --project src/AntLogistics.Core
 
-# Run UI frontend (from ClientApp directory)
-cd src/AntLogistics.UI/ClientApp
+# Run UI frontend
+cd src/AntLogistics.UI
 npm install
 npm run dev
 ```
@@ -319,12 +377,12 @@ npm run dev
 - [x] Frontend project structure (Astro + React)
 - [ ] Complete Warehouse CRUD (PUT, DELETE)
 - [ ] Commodity CRUD endpoints
-- [ ] Receipt entry functionality
-- [ ] Inventory view per warehouse
-- [ ] User authentication (bcrypt)
-- [ ] Session management
+- [x] Receipt entry functionality
+- [x] Inventory view per warehouse
+- [x] User authentication (bcrypt)
+- [x] Session management
 - [ ] UI validation with error messages
-- [ ] OpenAPI documentation
+- [x] OpenAPI documentation
 
 ### Phase 2 (Post-MVP)
 - [ ] Receipt history with filters
