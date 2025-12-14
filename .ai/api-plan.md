@@ -1,19 +1,16 @@
 # REST API Plan
 
 ## 1. Resources
-- `Warehouses` - master data for physical locations; stored in `warehouses`.
-- `Commodities` - catalog of stock keeping units and control rules; stored in `commodities`.
-- `Readings` - append-only intake transactions linking warehouses, commodities, and operators; stored in `readings`.
-- `Inventory Aggregates` - virtual resource produced by summing readings per warehouse and commodity (optionally backed by snapshots).
-- `Operators` - single-role user accounts plus admin flag; stored in `operators`.
-- `Operator Sessions` - issued tokens and idle timeout metadata; stored in `operator_sessions`.
-- `Activity Feed` - virtual view of the authenticated operator's recent readings (sourced from `readings`).
+- Warehouses – master data for physical locations; stored in `warehouses`.
+- Commodities – catalog of stock keeping units and control rules; stored in `commodities`.
+- Stocks – append-only intake transactions linking warehouses, commodities, and operators; stored in `stocks`.
+- Authentication – login, logout, and current operator info.
 
 ## 2. Endpoints
 ### Warehouses
 - **GET `/api/v1/warehouses`**  
-  Description: Paginated, filterable list (active by default).  
-  Query: `page` (default 1), `pageSize` (default 25, max 100), `sort` (`name|code|country|-updatedAt`), `code`, `name`, `countryCode`, `city`, `isActive` (bool).  
+  Description: Paginated list (active by default).  
+  Query: `page`, `pageSize`, `sort` (`name|code|country|-updatedAt`), `code`, `name`, `countryCode`, `city`, `isActive` (bool).  
   Response JSON:
   ```json
   {
@@ -58,11 +55,6 @@
   Success: `200 OK`.  
   Errors: `400`, `404`, `409` concurrency via `If-Unmodified-Since`, `422`.
 
-- **PATCH `/api/v1/warehouses/{id}/status`**  
-  Description: Activate or deactivate; body `{ "isActive": false, "reason": "Maintenance" }`.  
-  Success: `200 OK`.  
-  Errors: `404`, `409` already at requested status.
-
 ### Commodities
 - **GET `/api/v1/commodities`**  
   Query: `page`, `pageSize`, `sort` (`name|sku|-updatedAt`), `sku`, `name`, `unitOfMeasure`, `isActive`, `batchRequired`.  
@@ -72,28 +64,23 @@
 - **POST `/api/v1/commodities`**  
   Request JSON:
   ```json
-  {
-    "sku": "item-001",
-    "name": "Steel Bolt",
-    "unitOfMeasure": "pcs",
-    "batchRequired": false,
-    "controlParameters": {
-      "temperatureMin": -5,
-      "temperatureMax": 40
+    {
+      "sku": "item-001",
+      "name": "Steel Bolt",
+      "unitOfMeasure": "pcs",
+      "controlParameters": "{\"temperatureMin\": -5, \"temperatureMax\": 40}"
     }
-  }
   ```  
   Success: `201 Created`.  
   Errors: `400`, `409` duplicate SKU, `422` invalid `controlParameters`.
 
-- **GET `/api/v1/commodities/{id}`** - `200 OK` / `404 Not Found`.
+- **GET `/api/v1/commodities/{id}`**  
+  Description: Fetch single commodity.  
+  Success: `200 OK`.  
+  Errors: `404` missing.
 
-- **PUT `/api/v1/commodities/{id}`** - Full update, optionally reject SKU changes; `200 OK` / `409`.
-
-- **PATCH `/api/v1/commodities/{id}/status`** - Activate or deactivate; identical behavior to warehouse status endpoint.
-
-### Readings
-- **GET `/api/v1/readings`**  
+### Stocks
+- **GET `/api/v1/stocks`**  
   Description: Paginated append-only history with optional includes.  
   Query: `page`, `pageSize` (max 200), `sort` (`-occurredAt` default), `warehouseId`, `commodityId`, `sku`, `operatorId`, `source`, `from`, `to`, `batchNumber`, `warehouseZone`, `include=warehouse,commodity`.  
   Response JSON:
@@ -124,7 +111,7 @@
   Success: `200 OK`.  
   Errors: `400`, `401`, `403` (blocked by RLS).
 
-- **POST `/api/v1/readings`**  
+- **POST `/api/v1/stocks`**  
   Description: Capture intake; server enforces positive quantity, active references, batch rules, and fills `sku`, `createdBy`, `operatorId`, `source`.  
   Request JSON:
   ```json
@@ -144,76 +131,19 @@
   Response: `201 Created`.  
   Errors: `400` invalid quantity or date, `403` inactive warehouse or commodity, `409` batch required, `422` metadata schema, `429` throttled.
 
-- **GET `/api/v1/readings/{id}`** - Detail lookup; `200 OK` / `404`.
-
-### Inventory Aggregates
-- **GET `/api/v1/inventory`**  
-  Description: Summed quantities per warehouse and commodity with optional buckets.  
-  Query: `warehouseId`, `commodityId`, `sku`, `from`, `to`, `bucket` (`none|day|hour`), `includeInactive` (admin only).  
-  Response JSON:
-  ```json
-  {
-    "items": [
-      {
-        "warehouseId": "uuid",
-        "warehouseCode": "wh-north",
-        "commodityId": "uuid",
-        "sku": "item-001",
-        "quantity": 128.75,
-        "lastUpdate": "2025-02-01T12:00:00Z"
-      }
-    ],
-    "generatedAt": "2025-02-01T12:05:00Z"
-  }
-  ```  
+- **GET `/api/v1/stocks/{id}`**  
+  Description: Detail lookup for single stock entry.  
   Success: `200 OK`.  
-  Errors: `400` invalid filters, `401`, `403`.
+  Errors: `404`.
 
-### Operator Sessions
-- **POST `/api/v1/operator-sessions`**  
-  Description: Username/password login; issues UUID token stored as HttpOnly Secure cookie and in response body.  
-  Request JSON: `{ "username": "operator", "password": "secret" }`.  
-  Response JSON includes `sessionId`, `operatorId`, `token`, `idleTimeoutMinutes`, `issuedAt`, `expiresAt`.  
-  Success: `201 Created`.  
-  Errors: `400` missing fields, `401` invalid credentials or inactive account, `423` locked, `429` rate limited.
-
-- **PATCH `/api/v1/operator-sessions/{sessionId}`**  
-  Description: Refresh `lastSeenAt`, optionally rotate token, update `userAgent` or `clientIp`.  
-  Success: `200 OK`.  
-  Errors: `401`, `404` revoked or expired session.
-
-- **DELETE `/api/v1/operator-sessions/{sessionId}`**  
-  Description: Logout and revoke session.  
-  Success: `204 No Content`.  
-  Errors: `401`, `404`.
-
-### Operators
-- **GET `/api/v1/operators/me`** - Return profile, idle timeout, last login, and role; `200 OK` / `401`.
-- **PATCH `/api/v1/operators/me`** - Update mutable preferences (e.g., `idleTimeoutMinutes` between 5 and 180); `200 OK` or `400`/`401`/`422`.
-- **Admin only**: `GET /api/v1/operators` and `PATCH /api/v1/operators/{id}` for technical support with `app.is_admin = true`.
-
-### Activity Feed
-- **GET `/api/v1/activity`**  
-  Description: Returns the authenticated operator's last `n` readings with filters.  
-  Query: `limit` (default 20, max 100), `warehouseId`, `from`, `to`.  
-  Response JSON:
-  ```json
-  {
-    "items": [
-      {
-        "readingId": 12345,
-        "warehouseName": "North Hub",
-        "commodityName": "Steel Bolt",
-        "quantity": 12.5,
-        "unitOfMeasure": "kg",
-        "occurredAt": "2025-02-01T12:00:00Z"
-      }
-    ],
-    "limit": 20
-  }
-  ```  
-  Success: `200 OK`.  
-  Errors: `401`.
+### Authentication
+- **POST `/api/v1/auth/login`**  
+  Login with credentials; issues session token in secure HttpOnly cookie and response body.  
+  Request JSON: `{ "username": "operator", "password": "secret" }`.
+- **GET `/api/v1/auth/me`**  
+  Fetch current operator profile, idle timeout, last login, and role.
+- **POST `/api/v1/auth/logout`**  
+  Revoke current session.
 
 ## 3. Authentication and Authorization
 - **Mechanism**: Session tokens from `operator_sessions`. Tokens stored as Secure, HttpOnly cookies with optional Bearer header for API clients. Server hashes tokens at rest and tracks `issued_at`, `last_seen_at`, and `expires_at`.
