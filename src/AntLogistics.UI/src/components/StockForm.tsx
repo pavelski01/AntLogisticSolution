@@ -172,19 +172,27 @@ export default function StockForm() {
   return (
     <form onSubmit={onSubmit} aria-describedby="stock-form-help" className="space-y-6">
       {error && (
-        <div role="alert" className="rounded-md bg-red-900/40 border border-red-700 p-3 text-red-200">
+        <div
+          role="alert"
+          className="rounded-md bg-red-900/40 border border-red-700 p-3 text-red-200"
+        >
           {error}
         </div>
       )}
       {success && (
-        <div role="status" className="rounded-md bg-green-900/30 border border-green-700 p-3 text-green-200">
+        <div
+          role="status"
+          className="rounded-md bg-green-900/30 border border-green-700 p-3 text-green-200"
+        >
           {success}
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="warehouseId" className="block text-sm font-medium text-gray-200">Warehouse *</label>
+          <label htmlFor="warehouseId" className="block text-sm font-medium text-gray-200">
+            Warehouse *
+          </label>
           <select
             id="warehouseId"
             name="warehouseId"
@@ -193,15 +201,21 @@ export default function StockForm() {
             onChange={onChange}
             className="mt-1 w-full rounded-md bg-gray-900 border border-gray-700 px-3 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-600"
           >
-            <option value="" disabled>Select warehouse</option>
+            <option value="" disabled>
+              Select warehouse
+            </option>
             {warehouses.map((w) => (
-              <option key={w.id} value={w.id}>{w.name} ({w.code})</option>
+              <option key={w.id} value={w.id}>
+                {w.name} ({w.code})
+              </option>
             ))}
           </select>
         </div>
 
         <div>
-          <label htmlFor="commodityId" className="block text-sm font-medium text-gray-200">Commodity *</label>
+          <label htmlFor="commodityId" className="block text-sm font-medium text-gray-200">
+            Commodity *
+          </label>
           <select
             id="commodityId"
             name="commodityId"
@@ -210,15 +224,21 @@ export default function StockForm() {
             onChange={onChange}
             className="mt-1 w-full rounded-md bg-gray-900 border border-gray-700 px-3 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-600"
           >
-            <option value="" disabled>Select commodity</option>
+            <option value="" disabled>
+              Select commodity
+            </option>
             {commodities.map((c) => (
-              <option key={c.id} value={c.id}>{c.name} ({c.sku})</option>
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.sku})
+              </option>
             ))}
           </select>
         </div>
 
         <div>
-          <label htmlFor="quantity" className="block text-sm font-medium text-gray-200">Quantity *</label>
+          <label htmlFor="quantity" className="block text-sm font-medium text-gray-200">
+            Quantity *
+          </label>
           <input
             id="quantity"
             name="quantity"
@@ -232,7 +252,9 @@ export default function StockForm() {
         </div>
 
         <div>
-          <label htmlFor="warehouseZone" className="block text-sm font-medium text-gray-200">Warehouse Zone</label>
+          <label htmlFor="warehouseZone" className="block text-sm font-medium text-gray-200">
+            Warehouse Zone
+          </label>
           <input
             id="warehouseZone"
             name="warehouseZone"
@@ -244,7 +266,9 @@ export default function StockForm() {
         </div>
 
         <div>
-          <label htmlFor="operatorId" className="block text-sm font-medium text-gray-200">OperatorId (GUID)</label>
+          <label htmlFor="operatorId" className="block text-sm font-medium text-gray-200">
+            OperatorId (GUID)
+          </label>
           <input
             id="operatorId"
             name="operatorId"
@@ -256,7 +280,9 @@ export default function StockForm() {
         </div>
 
         <div>
-          <label htmlFor="createdBy" className="block text-sm font-medium text-gray-200">Created By</label>
+          <label htmlFor="createdBy" className="block text-sm font-medium text-gray-200">
+            Created By
+          </label>
           <input
             id="createdBy"
             name="createdBy"
@@ -268,7 +294,9 @@ export default function StockForm() {
         </div>
 
         <div>
-          <label htmlFor="source" className="block text-sm font-medium text-gray-200">Source</label>
+          <label htmlFor="source" className="block text-sm font-medium text-gray-200">
+            Source
+          </label>
           <input
             id="source"
             name="source"
@@ -280,7 +308,9 @@ export default function StockForm() {
         </div>
 
         <div>
-          <label htmlFor="occurredAt" className="block text-sm font-medium text-gray-200">Occurred At</label>
+          <label htmlFor="occurredAt" className="block text-sm font-medium text-gray-200">
+            Occurred At
+          </label>
           <input
             id="occurredAt"
             name="occurredAt"
@@ -292,7 +322,9 @@ export default function StockForm() {
         </div>
 
         <div className="md:col-span-2">
-          <label htmlFor="metadata" className="block text-sm font-medium text-gray-200">Metadata (JSON)</label>
+          <label htmlFor="metadata" className="block text-sm font-medium text-gray-200">
+            Metadata (JSON)
+          </label>
           <textarea
             id="metadata"
             name="metadata"
@@ -320,7 +352,9 @@ export default function StockForm() {
         >
           {submitting ? "Creating..." : "Create"}
         </button>
-        <a href="/stocks" className="text-sm text-gray-300 hover:text-gray-200">Cancel</a>
+        <a href="/stocks" className="text-sm text-gray-300 hover:text-gray-200">
+          Cancel
+        </a>
       </div>
     </form>
   );

@@ -43,36 +43,36 @@ export default function StockList() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const [stocksResponse, warehousesResponse, commoditiesResponse] = await Promise.all([
-        fetch('/api/v1/stocks'),
-        fetch('/api/v1/warehouses?includeInactive=false'),
-        fetch('/api/v1/commodities?includeInactive=false')
+        fetch("/api/v1/stocks"),
+        fetch("/api/v1/warehouses?includeInactive=false"),
+        fetch("/api/v1/commodities?includeInactive=false"),
       ]);
-      
+
       if (!stocksResponse.ok || !warehousesResponse.ok || !commoditiesResponse.ok) {
-        throw new Error('Failed to fetch data');
+        throw new Error("Failed to fetch data");
       }
-      
+
       const stocksData = await stocksResponse.json();
       const warehousesData = await warehousesResponse.json();
       const commoditiesData = await commoditiesResponse.json();
-      
+
       const warehouseMap = new Map<string, Warehouse>(
         warehousesData.map((w: Warehouse) => [w.id, w])
       );
-      
+
       const commodityMap = new Map<string, Commodity>(
         commoditiesData.map((c: Commodity) => [c.id, c])
       );
-      
+
       setStocks(stocksData);
       setWarehouses(warehouseMap);
       setCommodities(commodityMap);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load stocks';
+      const errorMessage = err instanceof Error ? err.message : "Failed to load stocks";
       setError(errorMessage);
-      console.error('Error fetching stocks:', err);
+      console.error("Error fetching stocks:", err);
     } finally {
       setLoading(false);
     }
@@ -116,46 +116,46 @@ export default function StockList() {
         const warehouse = warehouses.get(stock.warehouseId);
         const commodity = commodities.get(stock.commodityId);
         return (
-        <div
-          key={stock.id}
-          className="bg-gray-800 p-6 rounded-lg shadow-md hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
-        >
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="text-xl font-bold text-purple-400">{commodity?.name || stock.sku}</h3>
-            <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">
-              {stock.source}
-            </span>
+          <div
+            key={stock.id}
+            className="bg-gray-800 p-6 rounded-lg shadow-md hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <h3 className="text-xl font-bold text-purple-400">{commodity?.name || stock.sku}</h3>
+              <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">
+                {stock.source}
+              </span>
+            </div>
+            <p className="text-gray-300 mb-2">
+              <strong>SKU:</strong> {stock.sku}
+            </p>
+            <p className="text-gray-300 mb-2">
+              <strong>Warehouse:</strong> {warehouse?.name || stock.warehouseId}
+            </p>
+            <p className="text-gray-300 mb-2">
+              <strong>Unit:</strong> {stock.unitOfMeasure}
+            </p>
+            <div className="border-t border-gray-700 pt-3 mt-3">
+              <p className="text-gray-300 mb-1">
+                <strong>Quantity:</strong>
+              </p>
+              <p className="text-green-400 font-semibold text-2xl mb-2">
+                {stock.quantity.toLocaleString()} {stock.unitOfMeasure}
+              </p>
+            </div>
+            <div className="border-t border-gray-700 pt-3 mt-3">
+              <p className="text-gray-400 text-sm mb-1">
+                <strong>Created by:</strong> {stock.createdBy}
+              </p>
+              <p className="text-gray-400 text-sm mb-1">
+                <strong>Occurred:</strong> {new Date(stock.occurredAt).toLocaleString()}
+              </p>
+              <p className="text-gray-400 text-sm">
+                <strong>Recorded:</strong> {new Date(stock.createdAt).toLocaleString()}
+              </p>
+            </div>
           </div>
-          <p className="text-gray-300 mb-2">
-            <strong>SKU:</strong> {stock.sku}
-          </p>
-          <p className="text-gray-300 mb-2">
-            <strong>Warehouse:</strong> {warehouse?.name || stock.warehouseId}
-          </p>
-          <p className="text-gray-300 mb-2">
-            <strong>Unit:</strong> {stock.unitOfMeasure}
-          </p>
-          <div className="border-t border-gray-700 pt-3 mt-3">
-            <p className="text-gray-300 mb-1">
-              <strong>Quantity:</strong>
-            </p>
-            <p className="text-green-400 font-semibold text-2xl mb-2">
-              {stock.quantity.toLocaleString()} {stock.unitOfMeasure}
-            </p>
-          </div>
-          <div className="border-t border-gray-700 pt-3 mt-3">
-            <p className="text-gray-400 text-sm mb-1">
-              <strong>Created by:</strong> {stock.createdBy}
-            </p>
-            <p className="text-gray-400 text-sm mb-1">
-              <strong>Occurred:</strong> {new Date(stock.occurredAt).toLocaleString()}
-            </p>
-            <p className="text-gray-400 text-sm">
-              <strong>Recorded:</strong> {new Date(stock.createdAt).toLocaleString()}
-            </p>
-          </div>
-        </div>
-      );
+        );
       })}
     </div>
   );

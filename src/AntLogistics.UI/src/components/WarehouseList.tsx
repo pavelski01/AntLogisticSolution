@@ -29,19 +29,19 @@ export default function WarehouseList() {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/v1/warehouses?includeInactive=false');
-      
+
+      const response = await fetch("/api/v1/warehouses?includeInactive=false");
+
       if (!response.ok) {
         throw new Error(`API returned status ${response.status}`);
       }
-      
+
       const data = await response.json();
       setWarehouses(data);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load warehouses';
+      const errorMessage = err instanceof Error ? err.message : "Failed to load warehouses";
       setError(errorMessage);
-      console.error('Error fetching warehouses:', err);
+      console.error("Error fetching warehouses:", err);
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,9 @@ export default function WarehouseList() {
           </p>
           <p className="text-gray-300 mb-2">
             <strong>Status:</strong> {warehouse.isActive ? "Active" : "Inactive"}
-            {!warehouse.isActive && warehouse.deactivatedAt ? ` since ${new Date(warehouse.deactivatedAt).toLocaleDateString()}` : ""}
+            {!warehouse.isActive && warehouse.deactivatedAt
+              ? ` since ${new Date(warehouse.deactivatedAt).toLocaleDateString()}`
+              : ""}
           </p>
           <p className="text-gray-300">
             <strong>Capacity:</strong> {warehouse.capacity.toLocaleString()} units

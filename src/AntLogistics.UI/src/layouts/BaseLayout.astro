@@ -10,7 +10,11 @@ interface Props {
   requiresAuth?: boolean;
 }
 
-const { title = "Ant Logistics", description = "Modern logistics management powered by .NET Aspire and Astro", requiresAuth = true } = Astro.props;
+const {
+  title = "Ant Logistics",
+  description = "Modern logistics management powered by .NET Aspire and Astro",
+  requiresAuth = true,
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -33,10 +37,7 @@ const { title = "Ant Logistics", description = "Modern logistics management powe
           <div class="flex items-center gap-8">
             <ul class="flex gap-8">
               <li>
-                <a
-                  href="/"
-                  class="text-white font-medium hover:opacity-80 transition-opacity"
-                >
+                <a href="/" class="text-white font-medium hover:opacity-80 transition-opacity">
                   Home
                 </a>
               </li>
@@ -75,13 +76,15 @@ const { title = "Ant Logistics", description = "Modern logistics management powe
     </nav>
 
     <main class="flex-1 container mx-auto px-6 py-8">
-      {requiresAuth ? (
-        <AuthGate client:load>
+      {
+        requiresAuth ? (
+          <AuthGate client:load>
+            <slot />
+          </AuthGate>
+        ) : (
           <slot />
-        </AuthGate>
-      ) : (
-        <slot />
-      )}
+        )
+      }
     </main>
 
     <footer class="bg-gray-950 py-4 text-center text-gray-400">

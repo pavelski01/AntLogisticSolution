@@ -21,9 +21,7 @@ export default function CommodityForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const onChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as HTMLInputElement;
     if (type === "checkbox") {
       setForm((f) => ({ ...f, [name]: checked }));
@@ -86,9 +84,7 @@ export default function CommodityForm() {
 
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(
-          `Failed to create commodity (status ${res.status}). ${text}`
-        );
+        throw new Error(`Failed to create commodity (status ${res.status}). ${text}`);
       }
 
       setSuccess("Commodity created successfully");
@@ -106,19 +102,27 @@ export default function CommodityForm() {
   return (
     <form onSubmit={onSubmit} aria-describedby="commodity-form-help" className="space-y-6">
       {error && (
-        <div role="alert" className="rounded-md bg-red-900/40 border border-red-700 p-3 text-red-200">
+        <div
+          role="alert"
+          className="rounded-md bg-red-900/40 border border-red-700 p-3 text-red-200"
+        >
           {error}
         </div>
       )}
       {success && (
-        <div role="status" className="rounded-md bg-green-900/30 border border-green-700 p-3 text-green-200">
+        <div
+          role="status"
+          className="rounded-md bg-green-900/30 border border-green-700 p-3 text-green-200"
+        >
           {success}
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="sku" className="block text-sm font-medium text-gray-200">SKU *</label>
+          <label htmlFor="sku" className="block text-sm font-medium text-gray-200">
+            SKU *
+          </label>
           <input
             id="sku"
             name="sku"
@@ -129,7 +133,9 @@ export default function CommodityForm() {
           />
         </div>
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-200">Name *</label>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-200">
+            Name *
+          </label>
           <input
             id="name"
             name="name"
@@ -140,7 +146,9 @@ export default function CommodityForm() {
           />
         </div>
         <div className="md:col-span-2">
-          <label htmlFor="unitOfMeasure" className="block text-sm font-medium text-gray-200">Unit of Measure *</label>
+          <label htmlFor="unitOfMeasure" className="block text-sm font-medium text-gray-200">
+            Unit of Measure *
+          </label>
           <input
             id="unitOfMeasure"
             name="unitOfMeasure"
@@ -151,7 +159,9 @@ export default function CommodityForm() {
           />
         </div>
         <div className="md:col-span-2">
-          <label htmlFor="controlParameters" className="block text-sm font-medium text-gray-200">Control Parameters (JSON)</label>
+          <label htmlFor="controlParameters" className="block text-sm font-medium text-gray-200">
+            Control Parameters (JSON)
+          </label>
           <textarea
             id="controlParameters"
             name="controlParameters"
@@ -171,7 +181,9 @@ export default function CommodityForm() {
             onChange={onChange}
             className="h-4 w-4 rounded border-gray-700 bg-gray-900 text-purple-600 focus:ring-purple-600"
           />
-          <label htmlFor="isActive" className="text-sm text-gray-200">Active</label>
+          <label htmlFor="isActive" className="text-sm text-gray-200">
+            Active
+          </label>
         </div>
       </div>
 
@@ -187,7 +199,9 @@ export default function CommodityForm() {
         >
           {submitting ? "Creating..." : "Create"}
         </button>
-        <a href="/commodities" className="text-sm text-gray-300 hover:text-gray-200">Cancel</a>
+        <a href="/commodities" className="text-sm text-gray-300 hover:text-gray-200">
+          Cancel
+        </a>
       </div>
     </form>
   );

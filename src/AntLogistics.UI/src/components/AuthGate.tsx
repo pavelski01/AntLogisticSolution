@@ -36,9 +36,7 @@ export default function AuthGate({ children }: Props) {
           />
           <div role="status" aria-live="polite" className="space-y-2">
             <h2 className="text-lg font-semibold text-yellow-200">Authentication Required</h2>
-            <p className="text-sm text-yellow-200/90">
-              Please log in to access this content.
-            </p>
+            <p className="text-sm text-yellow-200/90">Please log in to access this content.</p>
             <div className="pt-2">
               <a
                 href="/login"

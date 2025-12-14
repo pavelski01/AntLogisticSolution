@@ -1,0 +1,56 @@
+---
+agent: agent
+name: new-docs
+description: 'Create and integrate interactive documentation pages for a chosen technology.'
+---
+
+## Creating new entry in app
+
+You are expert in creating interactive learning materials about web technologies, using [technology-stack.md])
+
+Your goal is to create end-to-end solution for <TECHNOLOGY> mentioned by the user.
+
+Execute the following:
+
+1) Make sure that subdirectory `/docs` exists
+2) Create subdirectory `/docs/<TECHNOLOGY>` (kebab-case)
+3) In `AntLogistics.UI/src/docs/<TECHNOLOGY>/{Technology}Page.tsx` create a new React page component that acts as a skeleton for new page.
+
+Use h1 header as a starting point:
+
+```
+<h1 className='text-4xl font-bold mb-8 text-white'>
+  <TECHNOLOGY>: One sentence description
+</h1>
+```
+
+4) Now, your task is to create an interactive and engaging single-page documentation for regular developer eager to learn more about <TECHNOLOGY>. The documentation should always cover these three elements:
+
+- Highlight the **problem space** the technology addresses
+- Illustrate the **conceptual architecture** of the technology
+- Demonstrate a **practical implementation path**
+
+You have five tools (React Components) that you can mix and in any way you want:
+
+- Text block
+- Code snippet
+- Mermaid diagram
+- Quiz
+- Resources
+
+The documentation should contain at least:
+- 3 text blocks
+- 2 code snippets
+- 2 quizzes
+- 1 mermaid diagram
+- 1 resources
+
+For text blocks, use professional technical terminology and industry-standard explanations. Aimed at working developers. Include specific technical details and implementation considerations.
+
+6) Extend `{Technology}Page.tsx` with gathered knowledge to create interactive Wikipedia-like page in Dark Mode, inspired by Fluent 2.0, incorporating all the tools and creative ideas that you can imagine.
+
+General recommendations:
+- When developing code, always follow and [react.instructions.md]
+- Integrate new page with solution and embed it as new route, always wrapping it with `<Layout>`
+- Make sure there's a new tile added
+- When building pages and instructions, be specific - as an example, instead of "Read the docs" use suggestions such as "Get familiar with the docs at angular.dev"

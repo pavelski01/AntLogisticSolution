@@ -25,19 +25,19 @@ export default function CommodityList() {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/v1/commodities?includeInactive=false');
-      
+
+      const response = await fetch("/api/v1/commodities?includeInactive=false");
+
       if (!response.ok) {
         throw new Error(`API returned status ${response.status}`);
       }
-      
+
       const data = await response.json();
       setCommodities(data);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load commodities';
+      const errorMessage = err instanceof Error ? err.message : "Failed to load commodities";
       setError(errorMessage);
-      console.error('Error fetching commodities:', err);
+      console.error("Error fetching commodities:", err);
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,9 @@ export default function CommodityList() {
           </p>
           <p className="text-gray-300 mb-2">
             <strong>Status:</strong> {commodity.isActive ? "Active" : "Inactive"}
-            {!commodity.isActive && commodity.deactivatedAt ? ` since ${new Date(commodity.deactivatedAt).toLocaleDateString()}` : ""}
+            {!commodity.isActive && commodity.deactivatedAt
+              ? ` since ${new Date(commodity.deactivatedAt).toLocaleDateString()}`
+              : ""}
           </p>
           <div className="text-gray-400 text-sm mt-4 pt-4 border-t border-gray-700">
             <p>Created: {new Date(commodity.createdAt).toLocaleDateString()}</p>

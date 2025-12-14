@@ -29,9 +29,7 @@ export default function WarehouseForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const onChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type, checked } = e.target as HTMLInputElement;
     if (type === "checkbox") {
       setForm((f) => ({ ...f, [name]: checked }));
@@ -53,8 +51,7 @@ export default function WarehouseForm() {
     if (!form.addressLine.trim()) return "Address line is required";
     if (!form.city.trim()) return "City is required";
     if (!form.countryCode.trim()) return "Country code is required";
-    if (form.countryCode.length !== 2)
-      return "Country code must be 2 letters (ISO-3166-1)";
+    if (form.countryCode.length !== 2) return "Country code must be 2 letters (ISO-3166-1)";
     if ((form.capacity ?? 0) < 0) return "Capacity cannot be negative";
     return null;
   };
@@ -92,9 +89,7 @@ export default function WarehouseForm() {
 
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(
-          `Failed to create warehouse (status ${res.status}). ${text}`
-        );
+        throw new Error(`Failed to create warehouse (status ${res.status}). ${text}`);
       }
 
       setSuccess("Warehouse created successfully");
@@ -113,19 +108,27 @@ export default function WarehouseForm() {
   return (
     <form onSubmit={onSubmit} aria-describedby="form-help" className="space-y-6">
       {error && (
-        <div role="alert" className="rounded-md bg-red-900/40 border border-red-700 p-3 text-red-200">
+        <div
+          role="alert"
+          className="rounded-md bg-red-900/40 border border-red-700 p-3 text-red-200"
+        >
           {error}
         </div>
       )}
       {success && (
-        <div role="status" className="rounded-md bg-green-900/30 border border-green-700 p-3 text-green-200">
+        <div
+          role="status"
+          className="rounded-md bg-green-900/30 border border-green-700 p-3 text-green-200"
+        >
           {success}
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-200">Name *</label>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-200">
+            Name *
+          </label>
           <input
             id="name"
             name="name"
@@ -136,7 +139,9 @@ export default function WarehouseForm() {
           />
         </div>
         <div>
-          <label htmlFor="code" className="block text-sm font-medium text-gray-200">Code *</label>
+          <label htmlFor="code" className="block text-sm font-medium text-gray-200">
+            Code *
+          </label>
           <input
             id="code"
             name="code"
@@ -147,7 +152,9 @@ export default function WarehouseForm() {
           />
         </div>
         <div className="md:col-span-2">
-          <label htmlFor="addressLine" className="block text-sm font-medium text-gray-200">Address Line *</label>
+          <label htmlFor="addressLine" className="block text-sm font-medium text-gray-200">
+            Address Line *
+          </label>
           <input
             id="addressLine"
             name="addressLine"
@@ -158,7 +165,9 @@ export default function WarehouseForm() {
           />
         </div>
         <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-200">City *</label>
+          <label htmlFor="city" className="block text-sm font-medium text-gray-200">
+            City *
+          </label>
           <input
             id="city"
             name="city"
@@ -169,7 +178,9 @@ export default function WarehouseForm() {
           />
         </div>
         <div>
-          <label htmlFor="countryCode" className="block text-sm font-medium text-gray-200">Country Code (ISO-2) *</label>
+          <label htmlFor="countryCode" className="block text-sm font-medium text-gray-200">
+            Country Code (ISO-2) *
+          </label>
           <input
             id="countryCode"
             name="countryCode"
@@ -181,7 +192,9 @@ export default function WarehouseForm() {
           />
         </div>
         <div>
-          <label htmlFor="postalCode" className="block text-sm font-medium text-gray-200">Postal Code</label>
+          <label htmlFor="postalCode" className="block text-sm font-medium text-gray-200">
+            Postal Code
+          </label>
           <input
             id="postalCode"
             name="postalCode"
@@ -191,7 +204,9 @@ export default function WarehouseForm() {
           />
         </div>
         <div>
-          <label htmlFor="defaultZone" className="block text-sm font-medium text-gray-200">Default Zone</label>
+          <label htmlFor="defaultZone" className="block text-sm font-medium text-gray-200">
+            Default Zone
+          </label>
           <input
             id="defaultZone"
             name="defaultZone"
@@ -201,7 +216,9 @@ export default function WarehouseForm() {
           />
         </div>
         <div>
-          <label htmlFor="capacity" className="block text-sm font-medium text-gray-200">Capacity</label>
+          <label htmlFor="capacity" className="block text-sm font-medium text-gray-200">
+            Capacity
+          </label>
           <input
             id="capacity"
             name="capacity"
@@ -222,7 +239,9 @@ export default function WarehouseForm() {
             onChange={onChange}
             className="h-4 w-4 rounded border-gray-700 bg-gray-900 text-purple-600 focus:ring-purple-600"
           />
-          <label htmlFor="isActive" className="text-sm text-gray-200">Active</label>
+          <label htmlFor="isActive" className="text-sm text-gray-200">
+            Active
+          </label>
         </div>
       </div>
 
@@ -238,7 +257,9 @@ export default function WarehouseForm() {
         >
           {submitting ? "Creating..." : "Create"}
         </button>
-        <a href="/warehouses" className="text-sm text-gray-300 hover:text-gray-200">Cancel</a>
+        <a href="/warehouses" className="text-sm text-gray-300 hover:text-gray-200">
+          Cancel
+        </a>
       </div>
     </form>
   );

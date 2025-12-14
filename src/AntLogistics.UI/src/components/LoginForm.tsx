@@ -63,19 +63,27 @@ export default function LoginForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-6 max-w-md" aria-describedby="login-form-help">
       {error && (
-        <div role="alert" className="rounded-md bg-red-900/40 border border-red-700 p-3 text-red-200">
+        <div
+          role="alert"
+          className="rounded-md bg-red-900/40 border border-red-700 p-3 text-red-200"
+        >
           {error}
         </div>
       )}
       {success && (
-        <div role="status" className="rounded-md bg-green-900/30 border border-green-700 p-3 text-green-200">
+        <div
+          role="status"
+          className="rounded-md bg-green-900/30 border border-green-700 p-3 text-green-200"
+        >
           {success}
         </div>
       )}
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-200">Username</label>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-200">
+            Username
+          </label>
           <input
             id="username"
             name="username"
@@ -86,7 +94,9 @@ export default function LoginForm() {
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-200">Password</label>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-200">
+            Password
+          </label>
           <input
             id="password"
             name="password"
@@ -99,7 +109,9 @@ export default function LoginForm() {
         </div>
       </div>
 
-      <div id="login-form-help" className="text-xs text-gray-400">Enter your operator credentials to continue.</div>
+      <div id="login-form-help" className="text-xs text-gray-400">
+        Enter your operator credentials to continue.
+      </div>
 
       <div className="flex items-center gap-3">
         <button
@@ -109,7 +121,9 @@ export default function LoginForm() {
         >
           {submitting ? "Signing in..." : "Sign in"}
         </button>
-        <a href="/" className="text-sm text-gray-300 hover:text-gray-200">Cancel</a>
+        <a href="/" className="text-sm text-gray-300 hover:text-gray-200">
+          Cancel
+        </a>
       </div>
     </form>
   );

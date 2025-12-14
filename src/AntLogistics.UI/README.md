@@ -12,7 +12,7 @@ This is the frontend application for Ant Logistics, built with Astro 5 and React
 
 ## Prerequisites
 
-- Node.js v18+ 
+- Node.js v18+
 - npm (comes with Node.js)
 
 ## Getting Started
@@ -105,7 +105,7 @@ vite: {
 To use the API in your components:
 
 ```typescript
-const response = await fetch('/api/warehouses');
+const response = await fetch("/api/warehouses");
 const data = await response.json();
 ```
 
