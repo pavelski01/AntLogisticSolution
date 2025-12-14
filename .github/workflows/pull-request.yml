@@ -73,8 +73,11 @@ jobs:
           dotnet tool install --global dotnet-format
           echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
 
-      - name: Lint backend with dotnet-format (verify no changes)
-        run: dotnet format --verify-no-changes
+      - name: Lint backend (whitespace)
+        run: dotnet format whitespace --no-restore --verify-no-changes
+
+      - name: Lint backend (style)
+        run: dotnet format style --no-restore --verify-no-changes
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
