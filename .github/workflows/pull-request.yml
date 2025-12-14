@@ -1,4 +1,4 @@
-name: Pull Request CI
+name: Pull Request
 
 on:
   pull_request:
@@ -26,39 +26,6 @@ jobs:
 
       - name: Show branches (verify default)
         run: git branch -a | cat
-
-      - name: Check .nvmrc in root
-        if: ${{ hashFiles('.nvmrc') != '' }}
-        run: |
-          echo "Found .nvmrc" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          cat .nvmrc >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-
-      - name: Check .env.example in root
-        if: ${{ hashFiles('.env.example') != '' }}
-        run: |
-          echo "Found .env.example (review required env variables)" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          cat .env.example >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-
-      - name: Summarize root package.json scripts
-        if: ${{ hashFiles('package.json') != '' }}
-        run: |
-          echo "Found root package.json" >> $GITHUB_STEP_SUMMARY
-          echo '```json' >> $GITHUB_STEP_SUMMARY
-          cat package.json >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-
-      - name: Summarize MSBuild props
-        if: ${{ hashFiles('Directory.Build.props') != '' }}
-        run: |
-          echo "Found Directory.Build.props" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo '```xml' >> $GITHUB_STEP_SUMMARY
-          cat Directory.Build.props >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -116,11 +83,14 @@ jobs:
         run: |
           dotnet add test/AntLogistics.Core.Tests/AntLogistics.Core.Tests.csproj package Microsoft.Testing.Extensions.CodeCoverage
 
+      - name: Ensure TRX report generator
+        run: |
+          dotnet add test/AntLogistics.Core.Tests/AntLogistics.Core.Tests.csproj package Microsoft.Testing.Extensions.TrxReport
+
       - name: Test + Coverage (trx + cobertura)
         run: |
           dotnet test test/AntLogistics.Core.Tests/AntLogistics.Core.Tests.csproj \
             -c Release \
-            --logger "trx;LogFileName=TestResults.trx" \
             --collect "Code Coverage" \
             --results-directory ./TestResults
 
